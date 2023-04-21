@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$version_kotlin"
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'org.openapi.generator' version '5.2.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
+    id 'com.github.node-gradle.node' version '3.5.1'
+}
+
+/* Define required variables. */
+def fullOAS = 'http://localhost:8080/swagger-docs'
+def oasFile = "${project.projectDir}/doc/oas.json"
+
+openApiGenerate {
+    generateApiTests = false
+    generateModelTests = false
+    validateSpec = false
+    skipValidateSpec = true
+
+    generatorName = 'typescript-angular'
+    inputSpec = oasFile
+    outputDir = file("${project.projectDir}/nmr-frontend/openapi").toString()
+    configOptions = [
+        npmName: '@nmr-openapi/api',
+        ngVersion: '13.2.3',
+        snapshot: 'true',
+        enumPropertyNaming: 'original'
+    ]
+}
+
+/**
+ * Task to generate OAS. Requires backend to run on default port.
+ */
+tasks.register('generateOAS') {
+    def f = new File(oasFile)
+    doLast {
+        httpRequest {
+            src fullOAS
+            outputFile f
+        }
+    }
+}
+
+allprojects {
+    /* Artefact properties. */
+    group = 'eu.xreco.nmr'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+/* Configure subprojects. */
+subprojects {
+    apply plugin: 'java'
+
+    dependencies {
+
+    }
+}
