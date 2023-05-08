@@ -10,7 +10,6 @@ import eu.xreco.nmr.backend.api.basket.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.cli.Cli
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.database.CottontailDBClient
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
@@ -43,7 +42,7 @@ class Main : CliktCommand(name = "NMR") {
     LOGGER.info("Used config file: " + this.config)
 
     /* TODO: Potentially, read configuration. */
-    val cottontailDBClient = CottontailDBClient(config.cottontailDB)
+    //val cottontailDBClient = CottontailDBClient(config.cottontailDB)
 
     /* Create Javalin instance. */
     val javalin = javalin()
