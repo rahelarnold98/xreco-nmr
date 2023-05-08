@@ -1,5 +1,5 @@
 {
-  "cottontaildb": {
+  "cottontailDB": {
     "host": "localhost",
     "port": 1865,
     "schemaName": "test"
