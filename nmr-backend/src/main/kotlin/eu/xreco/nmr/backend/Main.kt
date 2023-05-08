@@ -4,10 +4,16 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import eu.xreco.nmr.backend.api.authentification.login
+import eu.xreco.nmr.backend.api.authentification.logout
+import eu.xreco.nmr.backend.api.basket.*
+import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.database.CottontailDBClient
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.plugin.OpenApiPlugin
@@ -40,59 +46,95 @@ class Main : CliktCommand(name = "NMR") {
 
     /* Create Javalin instance. */
     val javalin = javalin()
-    javalin.before {
-        /* TODO: Logging. */
-    }.exception(Exception::class.java) { e, ctx ->
-        /* TODO: Error handling. */
-    }.routes {
-        path("api") {
-            /* TODO: Handlers for API. */
+    javalin
+        .before {
+          /* TODO: Logging. */
         }
-    }.start(config.api.port)
-}
+        .exception(Exception::class.java) { e, ctx ->
+          /* TODO: Error handling. */
+        }
+        .routes {
+          ApiBuilder.before { ctx ->
+            ctx.method()
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+            ctx.header(
+                Header.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization, Content-Type")
+            ctx.header(Header.CONTENT_TYPE, "application/json")
+          }
 
-/**
- * Generates a [Javalin] instance with the following configuration
- *
- * @return [Javalin] instance
- */
-private fun javalin() =  Javalin.create() {
-    /* Enable CORS. */
-    it.plugins.enableCors { cors ->
-        cors.add { corsPluginConfig ->
+          path("api") {
+            /* TODO: Handlers for API. */
+            path("authentication") {
+              ApiBuilder.get("{username}/{password}") { login(it) }
+              ApiBuilder.get("logout/{username}") { logout(it) }
+            }
+            path("retrieval") {
+              path("{elementId}") {
+                ApiBuilder.get("{attributes}") { retrieve(it) }
+                ApiBuilder.get("{entity}") { lookup(it) }
+              }
+              ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
+              ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
+              ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
+            }
+            path("basket") {
+              path("{basketId}") {
+                ApiBuilder.post { createBasket(it) }
+                ApiBuilder.delete { dropBasket(it) }
+                ApiBuilder.get { listElements(it) }
+                path("{elementId}") {
+                  ApiBuilder.post { addElement(it) }
+                  ApiBuilder.delete { dropElement(it) }
+                }
+              }
+              ApiBuilder.get("list/{userId}") { list(it) }
+            }
+          }
+        }
+        .start(config.api.port)
+  }
+
+  /**
+   * Generates a [Javalin] instance with the following configuration
+   *
+   * @return [Javalin] instance
+   */
+  private fun javalin() =
+      Javalin.create {
+        /* Enable CORS. */
+        it.plugins.enableCors { cors ->
+          cors.add { corsPluginConfig ->
             corsPluginConfig.reflectClientOrigin = true
             corsPluginConfig.allowCredentials = true
+          }
         }
-    }
 
-    /* Register Open API plugin. */
-    it.plugins.register(
-        OpenApiPlugin(
-            OpenApiPluginConfiguration()
-                .withDocumentationPath("/swagger-docs")
-                .withDefinitionConfiguration { _, u ->
-                    u.withOpenApiInfo { t ->
+        /* Register Open API plugin. */
+        it.plugins.register(
+            OpenApiPlugin(
+                OpenApiPluginConfiguration()
+                    .withDocumentationPath("/swagger-docs")
+                    .withDefinitionConfiguration { _, u ->
+                      u.withOpenApiInfo { t ->
                         t.title = "NMR Backend API"
                         t.version = VERSION
-                        t.description = "API for XREco Neural Media Repository (NMR) backend, Version $VERSION"
-                    }
-                    u.withSecurity(
-                        SecurityComponentConfiguration().withSecurityScheme("CookieAuth", CookieAuth("SESSIONID"))
-                    )
-                }
-        )
-    )
+                        t.description =
+                            "API for XREco Neural Media Repository (NMR) backend, Version $VERSION"
+                      }
+                      u.withSecurity(
+                          SecurityComponentConfiguration()
+                              .withSecurityScheme("CookieAuth", CookieAuth("SESSIONID")))
+                    }))
 
-    /* Register Swagger UI. */
-    it.plugins.register(
-        SwaggerPlugin(
-            SwaggerConfiguration().apply {
-                this.version = "4.10.3"
-                this.documentationPath = "/swagger-docs"
-                this.uiPath = "/swagger-ui"
-            }
-        )
-    )
+        /* Register Swagger UI. */
+        it.plugins.register(
+            SwaggerPlugin(
+                SwaggerConfiguration().apply {
+                  this.version = "4.10.3"
+                  this.documentationPath = "/swagger-docs"
+                  this.uiPath = "/swagger-ui"
+                }))
 
         /* General configuration. */
         it.http.defaultContentType = "application/json"

@@ -1,1 +1,411 @@
-{}
+{
+  "openapi" : "3.0.3",
+  "info" : {
+    "title" : "NMR Backend API",
+    "summary" : null,
+    "description" : "API for XREco Neural Media Repository (NMR) backend, Version 2.0.0",
+    "termsOfService" : null,
+    "contact" : null,
+    "license" : null,
+    "version" : "2.0.0"
+  },
+  "paths" : {
+    "/api/authentication/logout/{username}" : {
+      "get" : {
+        "tags" : [ "Authentication" ],
+        "summary" : "Logout function for a user.",
+        "operationId" : "getLogout",
+        "parameters" : [ {
+          "name" : "username",
+          "in" : "path",
+          "description" : "Username of user logging out",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/authentication/{username}/{password}" : {
+      "get" : {
+        "tags" : [ "Authentication" ],
+        "summary" : "Login function for a user.",
+        "operationId" : "getLogin",
+        "parameters" : [ {
+          "name" : "username",
+          "in" : "path",
+          "description" : "Username of user logging in",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "password",
+          "in" : "path",
+          "description" : "Password of user logging in",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/list/{userId}" : {
+      "get" : {
+        "tags" : [ "Basket" ],
+        "summary" : "List all baskets of a user.",
+        "operationId" : "getBasketsOfUser",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "Id of user",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/{basketId}" : {
+      "post" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Creates a new basket.",
+        "operationId" : "postBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket which gets deleted",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "delete" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Deletes a specific basket.",
+        "operationId" : "deleteBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket which gets deleted",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "Basket" ],
+        "summary" : "List all elements of a specific basket.",
+        "operationId" : "getElementsInBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/{basketId}/{elementID}" : {
+      "delete" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Drops a specific element of a specific basket.",
+        "operationId" : "deleteFromBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element that will be added",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/{basketId}/{elementId}" : {
+      "put" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Adds a specific element to a specific basket.",
+        "operationId" : "putToBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element that will be added",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/retrieval/filter/{condition}/{pageSize}/{page}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Apply a filter to a collection",
+        "operationId" : "getFilterQuery",
+        "parameters" : [ {
+          "name" : "condition",
+          "in" : "path",
+          "description" : "Condition to filter collection",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "path",
+          "description" : "Page size of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "page",
+          "in" : "path",
+          "description" : "Request page of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/retrieval/similarity/{elementId}/{pageSize}/{page}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Create a similarity query based on a given element id",
+        "operationId" : "getSimilarityQuery",
+        "parameters" : [ {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element to get most similar of",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "path",
+          "description" : "Page size of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "page",
+          "in" : "path",
+          "description" : "Request page of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/retrieval/text/{text}/{pageSize}/{page}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Create a fulltext query",
+        "operationId" : "getFullTextQuery",
+        "parameters" : [ {
+          "name" : "text",
+          "in" : "path",
+          "description" : "Text to query",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "path",
+          "description" : "Page size of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "page",
+          "in" : "path",
+          "description" : "Requested page of results",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/retrieval/{elementId}/{attributes}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Get object of given element",
+        "operationId" : "getAttributesOfElement",
+        "parameters" : [ {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element which will be returned",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "attributes",
+          "in" : "path",
+          "description" : "List of attributes to be returned",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/retrieval/{elementId}/{entity}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Get entity of given element",
+        "operationId" : "getValueOfElement",
+        "parameters" : [ {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element which will be returned",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "entity",
+          "in" : "path",
+          "description" : "Descriptor to retrieve data",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : { },
+    "securitySchemes" : {
+      "CookieAuth" : {
+        "in" : "cookie",
+        "name" : "SESSIONID",
+        "type" : "apiKey"
+      }
+    }
+  },
+  "servers" : [ ],
+  "security" : [ ]
+}
