@@ -1,5 +1,11 @@
 package eu.xreco.nmr.backend
 
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import eu.xreco.nmr.backend.config.Config
+import eu.xreco.nmr.backend.database.CottontailDBClient
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.staticfiles.Location
@@ -9,17 +15,28 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 /** Version of NMR Backend API. */
 const val VERSION = "2.0.0"
 
-/**
- * The main function and entrypoint for the NMR backend application. Reads
- */
-fun main(args: Array<String>) {
-    println("Starting NMR backend...")
+/** The main function and entrypoint for the NMR backend application. */
+class Main : CliktCommand(name = "NMR") {
+
+  private val LOGGER: Logger = LogManager.getLogger(Main::class)
+  private val config: Config by
+      option("-c", "--config", help = "Path to the config file")
+          .convert { Config.readConfig(it) }
+          .default(Config.readConfig("config.json"))
+
+  override fun run() {
+    val config = this.config
+    LOGGER.info("NMR backend starting up")
+    LOGGER.info("Used config file: " + this.config)
 
     /* TODO: Potentially, read configuration. */
+    val cottontailDBClient = CottontailDBClient(config.cottontailDB)
 
     /* Create Javalin instance. */
     val javalin = javalin()
@@ -31,7 +48,7 @@ fun main(args: Array<String>) {
         path("api") {
             /* TODO: Handlers for API. */
         }
-    }.start(8080)
+    }.start(config.api.port)
 }
 
 /**
@@ -77,11 +94,16 @@ private fun javalin() =  Javalin.create() {
         )
     )
 
-    /* General configuration. */
-    it.http.defaultContentType = "application/json"
-    it.http.prefer405over404 = true
-    it.staticFiles.add("html", Location.CLASSPATH) /* SPA serving. */
-    it.spaRoot.addFile("/", "html/index.html")
+        /* General configuration. */
+        it.http.defaultContentType = "application/json"
+        it.http.prefer405over404 = true
+        it.staticFiles.add("html", Location.CLASSPATH) /* SPA serving. */
+        it.spaRoot.addFile("/", "html/index.html")
+        /* TODO: Authentication + Authorization and SSL. */
 
-    /* TODO: Authentication + Authorization and SSL. */
+      }
+}
+
+fun main(args: Array<String>) {
+  Main().main(args)
 }
