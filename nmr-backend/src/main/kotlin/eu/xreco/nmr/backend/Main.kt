@@ -8,6 +8,7 @@ import eu.xreco.nmr.backend.api.authentification.login
 import eu.xreco.nmr.backend.api.authentification.logout
 import eu.xreco.nmr.backend.api.basket.*
 import eu.xreco.nmr.backend.api.retrieval.*
+import eu.xreco.nmr.backend.cli.Cli
 import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.database.CottontailDBClient
 import io.javalin.Javalin
@@ -93,6 +94,8 @@ class Main : CliktCommand(name = "NMR") {
           }
         }
         .start(config.api.port)
+
+    Cli.loop()
   }
 
   /**
