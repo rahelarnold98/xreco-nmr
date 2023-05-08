@@ -1,0 +1,10 @@
+{
+  "cottontaildb": {
+    "host": "localhost",
+    "port": 1865,
+    "schemaName": "test"
+  },
+  "api": {
+    "port": 8080
+  }
+}
