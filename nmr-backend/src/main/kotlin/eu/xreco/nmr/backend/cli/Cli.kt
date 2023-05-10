@@ -29,7 +29,6 @@ class Cli(client: SimpleClient, config: Config) {
    */
   private val clikt: CliktCommand = BaseCommand().subcommands(
     SetupCommand(client, config.database.schemaName),
-    HelpCommand(),
     QuitCommand()
   )
 
@@ -55,7 +54,15 @@ class Cli(client: SimpleClient, config: Config) {
         val line = lineReader.readLine(PROMPT).trim()
         if (line.isNotBlank()) {
           try {
-            clikt.parse(splitLine(line))
+
+            /* Handle special commands. */
+            if (line.lowercase() == "help") {
+              println(this.clikt.getFormattedHelp())
+              continue
+            }
+
+            /* Regular command parsing. */
+            this.clikt.parse(splitLine(line))
           } catch (e: Exception) {
             when (e) {
               is PrintHelpMessage -> LOGGER.info(e.command.getFormattedHelp())
