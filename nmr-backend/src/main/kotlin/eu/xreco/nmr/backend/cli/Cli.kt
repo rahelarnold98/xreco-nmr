@@ -1,6 +1,10 @@
 package eu.xreco.nmr.backend.cli
 
 import com.github.ajalt.clikt.core.*
+import eu.xreco.nmr.backend.cli.base.BaseCommand
+import eu.xreco.nmr.backend.cli.base.QuitCommand
+import eu.xreco.nmr.backend.cli.base.SetupCommand
+import eu.xreco.nmr.backend.config.Config
 import java.io.IOException
 import java.util.regex.Pattern
 import kotlin.system.exitProcess
@@ -13,17 +17,20 @@ import org.jline.reader.UserInterruptException
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.EnumCompleter
 import org.jline.terminal.TerminalBuilder
+import org.vitrivr.cottontail.client.SimpleClient
 
-object Cli {
+class Cli(client: SimpleClient, config: Config) {
 
-  private const val PROMPT = "NMR Backend> "
-  private val LOGGER: Logger = LogManager.getLogger(Cli::class)
+  companion object {
+    private const val PROMPT = "NMR Backend> "
+    private val LOGGER: Logger = LogManager.getLogger(Cli::class)
 
-  lateinit var clikt: CliktCommand
+  }
+
+  /** The [BaseCommand] object for this [Cli]*/
+  private val clikt: CliktCommand = BaseCommand(client, config)
 
   fun loop() {
-    clikt = BaseCommand().subcommands(HelpCommand(), QuitCommand())
-
     val terminal =
         try {
           TerminalBuilder.builder().build()
@@ -45,7 +52,15 @@ object Cli {
         val line = lineReader.readLine(PROMPT).trim()
         if (line.isNotBlank()) {
           try {
-            clikt.parse(splitLine(line))
+
+            /* Handle special commands. */
+            if (line.lowercase() == "help") {
+              println(this.clikt.getFormattedHelp())
+              continue
+            }
+
+            /* Regular command parsing. */
+            this.clikt.parse(splitLine(line))
           } catch (e: Exception) {
             when (e) {
               is PrintHelpMessage -> LOGGER.info(e.command.getFormattedHelp())

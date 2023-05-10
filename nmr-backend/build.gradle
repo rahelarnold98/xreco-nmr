@@ -7,6 +7,9 @@ apply plugin: 'kotlinx-serialization'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
 }
 
 dependencies {
@@ -26,6 +29,8 @@ dependencies {
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
 
+    /* Cottontail DB Driver + gRCP */
+    implementation group: 'org.vitrivr', name: 'cottontaildb-proto', version: version_cottontaildb_driver
     implementation group: 'io.grpc', name: 'grpc-all', version: version_grpc
     implementation group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
@@ -51,10 +56,6 @@ dependencies {
 
     /* JLine */
     implementation group: 'org.jline', name: 'jline', version: version_jline
-
-    /* Cottontail DB Driver */
-    implementation group: 'org.vitrivr', name: 'cottontaildb-proto', version: version_cottontaildb_driver
-
 }
 
 /* Application properties. */
