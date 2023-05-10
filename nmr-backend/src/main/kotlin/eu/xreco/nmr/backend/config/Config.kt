@@ -1,21 +1,25 @@
 package eu.xreco.nmr.backend.config
 
-import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
-/** NMR backend configuration, deserialized form of config.json-like files. */
+/**
+ * XRECO NMR backend configuration, deserialized form of config.json-like files.
+ *
+ * @author Rahel Arnold
+ * @version 1.0.0
+ */
 @Serializable
-data class Config(
-    val cottontailDB: CottontailDBConfig,
-    val api: APIConfig,
-) {
+data class Config(val api: APIConfig = APIConfig(), val database: DatabaseConfig = DatabaseConfig()) {
   companion object {
-    private const val DEFAULT_CONFIG_FILE = "config.json"
-
-    fun readConfig(config: String = DEFAULT_CONFIG_FILE): Config {
-      val jsonString = File(config).readText()
-      return Json.decodeFromString(serializer(), jsonString)
+    fun read(path: Path): Config {
+        Files.newInputStream(path, StandardOpenOption.READ).use {
+            return Json.decodeFromStream<Config>(it)
+        }
     }
   }
 }

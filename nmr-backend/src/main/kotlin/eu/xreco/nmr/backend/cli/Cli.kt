@@ -1,6 +1,7 @@
 package eu.xreco.nmr.backend.cli
 
 import com.github.ajalt.clikt.core.*
+import eu.xreco.nmr.backend.config.Config
 import java.io.IOException
 import java.util.regex.Pattern
 import kotlin.system.exitProcess
@@ -13,17 +14,26 @@ import org.jline.reader.UserInterruptException
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.EnumCompleter
 import org.jline.terminal.TerminalBuilder
+import org.vitrivr.cottontail.client.SimpleClient
 
-object Cli {
+class Cli(client: SimpleClient, config: Config) {
 
-  private const val PROMPT = "NMR Backend> "
-  private val LOGGER: Logger = LogManager.getLogger(Cli::class)
+  companion object {
+    private const val PROMPT = "NMR Backend> "
+    private val LOGGER: Logger = LogManager.getLogger(Cli::class)
 
-  lateinit var clikt: CliktCommand
+  }
+
+  /**
+   *
+   */
+  private val clikt: CliktCommand = BaseCommand().subcommands(
+    SetupCommand(client, config.database.schemaName),
+    HelpCommand(),
+    QuitCommand()
+  )
 
   fun loop() {
-    clikt = BaseCommand().subcommands(HelpCommand(), QuitCommand())
-
     val terminal =
         try {
           TerminalBuilder.builder().build()
