@@ -11,11 +11,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MediaSegment(
     val segmentid: String,
-    val objectId: String,
+    val objectid: String,
     val segmentnumber: Int,
     val segmentstart: Long,
     val segmentend: Long,
+    val segmentrepresentative: Long,
     val segmentstartabs: Float,
-    val segmentendabs: Float
+    val segmentendabs: Float,
+    val segmentrepresentativeabs: Float,
 ) {
 }

@@ -9,4 +9,4 @@ import kotlinx.serialization.Serializable
  * @version 1.0.0.
  */
 @Serializable
-data class MediaObject(val objectid: String, val type: MediaType, val name: String, val path: String)
+data class MediaObject(val objectid: String, val mediatype: Int, val name: String, val path: String)

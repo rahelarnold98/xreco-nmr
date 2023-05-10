@@ -1,6 +1,9 @@
 package eu.xreco.nmr.backend.cli
 
 import com.github.ajalt.clikt.core.*
+import eu.xreco.nmr.backend.cli.base.BaseCommand
+import eu.xreco.nmr.backend.cli.base.QuitCommand
+import eu.xreco.nmr.backend.cli.base.SetupCommand
 import eu.xreco.nmr.backend.config.Config
 import java.io.IOException
 import java.util.regex.Pattern
@@ -24,13 +27,8 @@ class Cli(client: SimpleClient, config: Config) {
 
   }
 
-  /**
-   *
-   */
-  private val clikt: CliktCommand = BaseCommand().subcommands(
-    SetupCommand(client, config.database.schemaName),
-    QuitCommand()
-  )
+  /** The [BaseCommand] object for this [Cli]*/
+  private val clikt: CliktCommand = BaseCommand(client, config)
 
   fun loop() {
     val terminal =

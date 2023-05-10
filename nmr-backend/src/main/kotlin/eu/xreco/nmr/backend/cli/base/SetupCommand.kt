@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.cli
+package eu.xreco.nmr.backend.cli.base
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.flag
