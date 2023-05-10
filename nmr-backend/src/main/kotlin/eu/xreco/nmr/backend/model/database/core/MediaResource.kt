@@ -5,7 +5,9 @@ import eu.xreco.nmr.backend.model.database.EntityObject
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
+import org.vitrivr.cottontail.client.language.ddl.CreateIndex
 import org.vitrivr.cottontail.core.types.Types
+import org.vitrivr.cottontail.grpc.CottontailGrpc
 
 /**
  * Represents a media resource in the XRECO data model.
@@ -28,5 +30,10 @@ data class MediaResource(val mediaResourceId: String, val title: String? = null,
             .column(name = "description", type = Types.String, nullable = true)
             .column(name = "uri", type = Types.String, nullable = false)
             .column(name = "path", type = Types.String, nullable = false)
+
+
+        override fun indexes(schema: String): List<CreateIndex> = listOf(
+            CreateIndex("$schema.$name", "mediaResourceId", CottontailGrpc.IndexType.BTREE_UQ).name("idx_uq_mediaResourceId"),
+        )
     }
 }
