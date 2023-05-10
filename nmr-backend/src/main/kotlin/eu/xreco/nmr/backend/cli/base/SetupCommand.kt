@@ -56,7 +56,7 @@ class SetupCommand(private val client: SimpleClient, private val schema: String 
         for (table in Constants.ENTITIES) {
             try {
                 println("Creating entity '${table.name}'...")
-                this.client.create(table.create()).close() /* Create entities. */
+                this.client.create(table.create(this.schema)).close() /* Create entities. */
 
                 for (i in table.indexes()) {
                     this.client.create(i).close() /* Create indexes. */
