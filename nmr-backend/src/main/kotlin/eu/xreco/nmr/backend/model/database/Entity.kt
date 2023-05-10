@@ -18,7 +18,7 @@ interface Entity {
      *
      * @return [CreateEntity] command that should be executed as part of the setup.
      */
-    fun create(): CreateEntity
+    fun create(schema: String = "xreco"): CreateEntity
 
     /**
      * The [CreateIndex] commands that must be executed for this [Entity].

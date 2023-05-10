@@ -21,7 +21,7 @@ data class Basket(val baskedId: Int, val name: String): EntityObject {
 
     companion object: Entity {
         override val name: String = "baskets"
-        override fun create(): CreateEntity = CreateEntity(name)
+        override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
         .column(name = "baskedId", type = Types.Int, nullable = false, autoIncrement = true)
         .column(name = "name", type = Types.String, nullable = false)
     }

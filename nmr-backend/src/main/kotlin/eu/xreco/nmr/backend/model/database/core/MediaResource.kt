@@ -2,6 +2,7 @@ package eu.xreco.nmr.backend.model.database.core
 
 import eu.xreco.nmr.backend.model.database.Entity
 import eu.xreco.nmr.backend.model.database.EntityObject
+import eu.xreco.nmr.backend.model.database.basket.Basket
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
@@ -21,7 +22,7 @@ data class MediaResource(val mediaResourceId: String, val title: String? = null,
 
     companion object: Entity {
         override val name: String = "media_resources"
-        override fun create(): CreateEntity = CreateEntity(name)
+        override fun create(schema: String): CreateEntity = CreateEntity("$schema.${Basket.name}")
             .column(name = "mediaResourceId", type = Types.String, nullable = false)
             .column(name = "type", type = Types.Int, nullable = false)
             .column(name = "title", type = Types.String, nullable = true)
