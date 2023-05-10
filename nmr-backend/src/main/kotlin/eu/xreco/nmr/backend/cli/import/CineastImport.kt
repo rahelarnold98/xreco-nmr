@@ -13,6 +13,7 @@ import kotlinx.serialization.json.DecodeSequenceMode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeToSequence
 import org.vitrivr.cottontail.client.SimpleClient
+import org.vitrivr.cottontail.client.language.dml.BatchInsert
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.core.values.IntValue
 import org.vitrivr.cottontail.core.values.LongValue
@@ -77,17 +78,19 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         val txId = this.client.begin()
         try {
             Files.newInputStream(path).use {
+                val insert = BatchInsert("$schema.${LandmarkFeature.name}").columns("mediaResourceId", "label", "start", "end").txId(txId)
                 for (l in Json.decodeToSequence<LegacyLandmarks>(it, DecodeSequenceMode.ARRAY_WRAPPED)){
                     val segment = mapping[l.id] ?: continue
-                    val i = Insert("$schema.${LandmarkFeature.name}")
-                        .values(
-                            "mediaResourceId" to StringValue(segment.first),
-                            "label" to StringValue(l.feature),
-                            "start" to LongValue(segment.second),
-                            "end" to LongValue(segment.third),
-                        ).txId(txId)
-                    this.client.insert(i).close()
+                    if (!insert.values(StringValue(segment.first), StringValue(l.feature), LongValue(segment.second), LongValue(segment.second))) {
+                        this.client.insert(insert).close()
+                        insert.clear()
+                        insert.values(StringValue(segment.first), StringValue(l.feature), LongValue(segment.second), LongValue(segment.second))
+                    }
                     counter += 1
+                }
+
+                if (insert.count() > 0) {
+                    this.client.insert(insert).close()
                 }
             }
         } catch (e: Throwable) {
@@ -122,18 +125,17 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         val txId = this.client.begin()
         try {
             Files.newInputStream(path).use {
+                val insert = BatchInsert("$schema.${MediaResource.name}").columns("mediaResourceId", "type", "title", "description", "uri", "path").txId(txId)
                 for (o in Json.decodeToSequence<MediaObject>(it, DecodeSequenceMode.ARRAY_WRAPPED)){
-                    val i = Insert("$schema.${MediaResource.name}")
-                        .values(
-                            "mediaResourceId" to StringValue(o.objectid),
-                            "type" to IntValue(o.mediatype),
-                            "title" to null,
-                            "description" to null,
-                            "uri" to StringValue(o.path),
-                            "path" to StringValue(o.path),
-                        ).txId(txId)
-                    this.client.insert(i).close()
+                    if (!insert.values(StringValue(o.objectid), IntValue(o.mediatype), null, null, StringValue(o.path),StringValue(o.path))) {
+                        this.client.insert(insert).close()
+                        insert.clear()
+                        insert.values(StringValue(o.objectid), IntValue(o.mediatype), null, null, StringValue(o.path),StringValue(o.path))
+                    }
                     counter += 1
+                }
+                if (insert.count() > 0) {
+                    this.client.insert(insert).close()
                 }
             }
         } catch (e: Throwable) {
