@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.model.core
+package eu.xreco.nmr.backend.model.database.core
 
 /**
  * Enumeration of all [AssetType]s use in the XRECO data model.

@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.model.score
+package eu.xreco.nmr.backend.model.database.score
 
 import kotlinx.serialization.Serializable
 

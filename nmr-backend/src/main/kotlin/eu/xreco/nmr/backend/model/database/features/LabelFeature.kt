@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.model.features
+package eu.xreco.nmr.backend.model.database.features
 
 /**
  * Represents a float vector based [Feature] in the XRECO data model.

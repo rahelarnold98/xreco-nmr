@@ -1,6 +1,7 @@
-package eu.xreco.nmr.backend.model.features
+package eu.xreco.nmr.backend.model.database.features
 
-import eu.xreco.nmr.backend.model.core.MediaResource
+import eu.xreco.nmr.backend.model.database.EntityObject
+import eu.xreco.nmr.backend.model.database.core.MediaResource
 
 /**
  * Represents a feature in the XRECO data model. A [Feature] describes a [MediaResource] or parts thereof.
@@ -8,7 +9,7 @@ import eu.xreco.nmr.backend.model.core.MediaResource
  * @author Ralph Gasser
  * @version 1.0.0.
  */
-interface Feature {
+interface Feature: EntityObject {
     /** The ID of the [MediaResource] this [Feature] describes. */
     val mediaResourceId: String
 

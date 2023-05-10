@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
     val client = config.database.newClient()
     try {
         if (!client.ping()) {
-            System.err.println("The database ${config.database.host}:${config.database.port} is not reachable. NMR backend is shutting down.")
+            System.err.println("The Cottontail DB database ${config.database.host}:${config.database.port} is not reachable. NMR backend is shutting down.")
             exitProcess(1)
         }
     } catch (e: Throwable) {

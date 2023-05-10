@@ -3,7 +3,7 @@ package eu.xreco.nmr.backend.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import eu.xreco.nmr.backend.model.Entities
+import eu.xreco.nmr.backend.Constants
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.vitrivr.cottontail.client.SimpleClient
@@ -57,7 +57,7 @@ class SetupCommand(private val client: SimpleClient, private val schema: String 
         }
 
         /* Create and setup entities. */
-        for (table in Entities.ENTITIES) {
+        for (table in Constants.ENTITIES) {
             try {
                 println("Creating entity '${table.name}'...")
                 this.client.create(table.create().txId(txId)).close() /* Create entities. */
