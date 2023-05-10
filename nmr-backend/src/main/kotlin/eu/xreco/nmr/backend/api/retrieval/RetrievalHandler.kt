@@ -1,10 +1,14 @@
 package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
+import eu.xreco.nmr.backend.database.CottontailDBClient
+import eu.xreco.nmr.backend.model.status.ErrorStatus
+import eu.xreco.nmr.backend.model.status.ErrorStatusException
+import eu.xreco.nmr.backend.model.status.SuccessStatus
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.*
 
 @OpenApi(
     summary = "Get object of given element",
@@ -25,7 +29,7 @@ fun retrieve(context: Context) {
 
 @OpenApi(
     summary = "Get entity of given element",
-    path = "/api/retrieval/{elementId}/{entity}",
+    path = "/api/retrieval/lookup/{elementId}/{entity}",
     tags = [Retrieval],
     operationId = "getValueOfElement",
     methods = [HttpMethod.GET],
@@ -33,12 +37,38 @@ fun retrieve(context: Context) {
         [
             OpenApiParam("elementId", String::class, "Id of element which will be returned"),
             OpenApiParam("entity", String::class, "Descriptor to retrieve data"),
-
         ],
-    /* TODO add Responses*/
-)
-fun lookup(context: Context) {
-  /* TODO implement*/
+    responses =
+        [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+        ])
+fun lookup(context: Context, cottontailDBClient: CottontailDBClient) {
+  val elementId = context.pathParam("elementId")
+  val entity = context.pathParam("entity")
+  try {
+    val res = cottontailDBClient.lookup(entity, elementId)
+    context.json(res)
+  } catch (e: StatusRuntimeException) {
+    when (e.status.code) {
+      Status.Code.INTERNAL -> {
+        throw ErrorStatusException(
+            400,
+            "The requested element '${cottontailDBClient.getSchemaName()}.${entity}.${elementId} could not be found.")
+      }
+      Status.Code.NOT_FOUND ->
+          throw ErrorStatusException(
+              404,
+              "The requested element '${cottontailDBClient.getSchemaName()}.${entity}.${elementId} could not be found.")
+      Status.Code.UNAVAILABLE ->
+          throw ErrorStatusException(503, "Connection is currently not available.")
+      else -> {
+        throw e.message?.let { ErrorStatusException(400, it) }!!
+      }
+    }
+  }
 }
 
 @OpenApi(

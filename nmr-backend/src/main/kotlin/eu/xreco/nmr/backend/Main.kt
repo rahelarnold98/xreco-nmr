@@ -10,6 +10,9 @@ import eu.xreco.nmr.backend.api.basket.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.cli.Cli
 import eu.xreco.nmr.backend.config.Config
+import eu.xreco.nmr.backend.database.CottontailDBClient
+import eu.xreco.nmr.backend.model.status.ErrorStatus
+import eu.xreco.nmr.backend.model.status.ErrorStatusException
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
@@ -42,7 +45,7 @@ class Main : CliktCommand(name = "NMR") {
     LOGGER.info("Used config file: " + this.config)
 
     /* TODO: Potentially, read configuration. */
-    //val cottontailDBClient = CottontailDBClient(config.cottontailDB)
+    val cottontailDBClient = CottontailDBClient(config.cottontailDB)
 
     /* Create Javalin instance. */
     val javalin = javalin()
@@ -70,10 +73,8 @@ class Main : CliktCommand(name = "NMR") {
               ApiBuilder.get("logout/{username}") { logout(it) }
             }
             path("retrieval") {
-              path("{elementId}") {
-                ApiBuilder.get("{attributes}") { retrieve(it) }
-                ApiBuilder.get("{entity}") { lookup(it) }
-              }
+              ApiBuilder.get("{elementId}/{attributes}") { retrieve(it) }
+              ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, cottontailDBClient) }
               ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
               ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
               ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
@@ -91,6 +92,12 @@ class Main : CliktCommand(name = "NMR") {
               ApiBuilder.get("list/{userId}") { list(it) }
             }
           }
+        }
+        .exception(ErrorStatusException::class.java) { e, ctx ->
+          ctx.status(e.code).json(e.toStatus())
+        }
+        .exception(Exception::class.java) { e, ctx ->
+          ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))
         }
         .start(config.api.port)
 
