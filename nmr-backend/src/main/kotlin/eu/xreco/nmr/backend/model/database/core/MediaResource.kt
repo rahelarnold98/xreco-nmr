@@ -17,12 +17,18 @@ import org.vitrivr.cottontail.grpc.CottontailGrpc
  * @version 1.0.0.
  */
 @Serializable
-data class MediaResource(val mediaResourceId: String, val title: String? = null, val description: String? = null, val uri: String, val path: String): EntityObject {
+data class MediaResource(
+    val mediaResourceId: String,
+    val title: String? = null,
+    val description: String? = null,
+    val uri: String,
+    val path: String
+) : EntityObject {
 
     @Transient
     override val entity: Entity = MediaResource
 
-    companion object: Entity {
+    companion object : Entity {
         override val name: String = "media_resources"
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
             .column(name = Name.ColumnName("mediaResourceId"), type = Types.String, nullable = false)
@@ -34,7 +40,8 @@ data class MediaResource(val mediaResourceId: String, val title: String? = null,
 
 
         override fun indexes(schema: String): List<CreateIndex> = listOf(
-            CreateIndex(Name.EntityName(schema, name), CottontailGrpc.IndexType.BTREE_UQ).name("idx_uq_mediaResourceId").column("mediaResourceId"),
+            CreateIndex(Name.EntityName(schema, name), CottontailGrpc.IndexType.BTREE_UQ).name("idx_uq_mediaResourceId")
+                .column("mediaResourceId"),
         )
     }
 }

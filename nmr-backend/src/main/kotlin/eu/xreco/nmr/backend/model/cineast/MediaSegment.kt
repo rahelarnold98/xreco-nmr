@@ -19,5 +19,4 @@ data class MediaSegment(
     val segmentstartabs: Float,
     val segmentendabs: Float,
     val segmentrepresentativeabs: Float,
-) {
-}
+)

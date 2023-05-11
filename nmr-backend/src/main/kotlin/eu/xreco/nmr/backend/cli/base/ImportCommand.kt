@@ -14,9 +14,9 @@ import org.vitrivr.cottontail.client.SimpleClient
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ImportCommand(client: SimpleClient, schema: String = "xreco"): NoOpCliktCommand(name = "import") {
+class ImportCommand(client: SimpleClient, schema: String = "xreco") : NoOpCliktCommand(name = "import") {
     init {
         context { helpFormatter = CliktHelpFormatter() }
-        this.subcommands(CineastImport(client, schema),)
+        this.subcommands(CineastImport(client, schema))
     }
 }

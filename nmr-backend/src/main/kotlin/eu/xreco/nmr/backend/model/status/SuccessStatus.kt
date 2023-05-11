@@ -7,4 +7,5 @@ import kotlinx.serialization.Serializable
  *
  * @author Rahel Arnold
  */
-@Serializable data class SuccessStatus(val description: String)
+@Serializable
+data class SuccessStatus(val description: String)

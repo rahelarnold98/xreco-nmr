@@ -6,6 +6,6 @@ package eu.xreco.nmr.backend.model.database.features
  * @author Ralph Gasser
  * @version 1.0.0.
  */
-interface FloatVectorFeature: Feature {
+interface FloatVectorFeature : Feature {
     val feature: FloatArray
 }

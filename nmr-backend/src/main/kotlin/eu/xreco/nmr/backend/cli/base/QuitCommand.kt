@@ -7,9 +7,8 @@ import kotlin.system.exitProcess
 /**
  * A command that terminates the NMR backend.
  */
-class QuitCommand :
-    NoOpCliktCommand(name = CliCommands.QUIT.name.lowercase(), help = "Terminates XRECO NMR backend.") {
-  override fun run() {
-    exitProcess(0)
-  }
+class QuitCommand : NoOpCliktCommand(name = CliCommands.QUIT.name.lowercase(), help = "Terminates XRECO NMR backend.") {
+    override fun run() {
+        exitProcess(0)
+    }
 }

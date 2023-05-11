@@ -9,4 +9,9 @@ import kotlinx.serialization.Serializable
  * @version 1.0.0.
  */
 @Serializable
-data class ScoredMediaObject(val mediaObjectId: String, val score: Double, val start: Long? = null, val end: Long? = null)
+data class ScoredMediaObject(
+    val mediaObjectId: String,
+    val score: Double,
+    val start: Long? = null,
+    val end: Long? = null
+)

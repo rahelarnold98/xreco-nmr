@@ -9,7 +9,7 @@ import eu.xreco.nmr.backend.model.database.core.MediaResource
  * @author Ralph Gasser
  * @version 1.0.0.
  */
-interface Feature: EntityObject {
+interface Feature : EntityObject {
     /** The ID of the [MediaResource] this [Feature] describes. */
     val mediaResourceId: String
 

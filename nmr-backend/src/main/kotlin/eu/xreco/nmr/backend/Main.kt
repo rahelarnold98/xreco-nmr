@@ -51,69 +51,60 @@ fun main(args: Array<String>) {
     /* Create and start Javalin instance. */
     javalin().before {
         /* TODO: Logging. */
-    }
-    .exception(Exception::class.java) { e, ctx ->
-        /* TODO: Error handling. */
-      }
-      .initializeRoutes(client, config)
-      .exception(ErrorStatusException::class.java) { e, ctx ->
-        ctx.status(e.code).json(e.toStatus())
-      }
-      .exception(Exception::class.java) { e, ctx ->
-        ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))
-      }
-      .start(config.api.port)
+    }.exception(Exception::class.java) { e, ctx ->
+            /* TODO: Error handling. */
+        }.initializeRoutes(client, config).exception(ErrorStatusException::class.java) { e, ctx ->
+            ctx.status(e.code).json(e.toStatus())
+        }.exception(Exception::class.java) { e, ctx ->
+            ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))
+        }.start(config.api.port)
 
     /* Create and start CLI instance. */
     Cli(client, config).loop()
 }
 
 /**
-* Generates a [Javalin] instance with the following configuration
-*
-* @return [Javalin] instance
-*/
-private fun javalin() =
-  Javalin.create {
+ * Generates a [Javalin] instance with the following configuration
+ *
+ * @return [Javalin] instance
+ */
+private fun javalin() = Javalin.create {
     /* Enable CORS. */
     it.plugins.enableCors { cors ->
-      cors.add { corsPluginConfig ->
-        corsPluginConfig.reflectClientOrigin = true
-        corsPluginConfig.allowCredentials = true
-      }
+        cors.add { corsPluginConfig ->
+            corsPluginConfig.reflectClientOrigin = true
+            corsPluginConfig.allowCredentials = true
+        }
     }
 
     /* Register Open API plugin. */
     it.plugins.register(
-        OpenApiPlugin(
-            OpenApiPluginConfiguration()
-                .withDocumentationPath("/swagger-docs")
-                .withDefinitionConfiguration { _, u ->
-                  u.withOpenApiInfo { t ->
+        OpenApiPlugin(OpenApiPluginConfiguration().withDocumentationPath("/swagger-docs")
+            .withDefinitionConfiguration { _, u ->
+                u.withOpenApiInfo { t ->
                     t.title = "NMR Backend API"
                     t.version = VERSION
-                    t.description =
-                        "API for XREco Neural Media Repository (NMR) backend, Version $VERSION"
-                  }
-                  u.withSecurity(
-                      SecurityComponentConfiguration()
-                          .withSecurityScheme("CookieAuth", CookieAuth("SESSIONID")))
-                }))
+                    t.description = "API for XREco Neural Media Repository (NMR) backend, Version $VERSION"
+                }
+                u.withSecurity(
+                    SecurityComponentConfiguration().withSecurityScheme("CookieAuth", CookieAuth("SESSIONID"))
+                )
+            })
+    )
 
     /* Register Swagger UI. */
     it.plugins.register(
-        SwaggerPlugin(
-            SwaggerConfiguration().apply {
-              this.version = "4.10.3"
-              this.documentationPath = "/swagger-docs"
-              this.uiPath = "/swagger-ui"
-            }))
+        SwaggerPlugin(SwaggerConfiguration().apply {
+            this.version = "4.10.3"
+            this.documentationPath = "/swagger-docs"
+            this.uiPath = "/swagger-ui"
+        })
+    )
 
     /* General configuration. */
     it.http.defaultContentType = "application/json"
     it.http.prefer405over404 = true
     it.staticFiles.add("html", Location.CLASSPATH) /* SPA serving. */
-    it.spaRoot.addFile("/", "html/index.html")
-    /* TODO: Authentication + Authorization and SSL. */
+    it.spaRoot.addFile("/", "html/index.html")/* TODO: Authentication + Authorization and SSL. */
 
-  }
+}

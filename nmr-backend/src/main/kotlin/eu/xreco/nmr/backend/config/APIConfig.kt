@@ -8,4 +8,5 @@ import kotlinx.serialization.Serializable
  * @author Rahel Arnold
  * @version 1.0.0
  */
-@Serializable data class APIConfig(val port: Int = 7070)
+@Serializable
+data class APIConfig(val port: Int = 7070)

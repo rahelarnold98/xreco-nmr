@@ -13,15 +13,13 @@ import io.javalin.openapi.OpenApiParam
     tags = [Authentication],
     operationId = "getLogin",
     methods = [HttpMethod.GET],
-    pathParams =
-        [
-            OpenApiParam("username", String::class, "Username of user logging in"),
-            OpenApiParam("password", String::class, "Password of user logging in"),
-        ],
+    pathParams = [
+        OpenApiParam("username", String::class, "Username of user logging in"),
+        OpenApiParam("password", String::class, "Password of user logging in"),
+    ],
     /* TODO add Responses*/
 )
-fun login(context: Context) {
-  /* TODO implement*/
+fun login(context: Context) {/* TODO implement*/
 }
 
 @OpenApi(
@@ -30,12 +28,10 @@ fun login(context: Context) {
     tags = [Authentication],
     operationId = "getLogout",
     methods = [HttpMethod.GET],
-    pathParams =
-        [
-            OpenApiParam("username", String::class, "Username of user logging out"),
-        ],
+    pathParams = [
+        OpenApiParam("username", String::class, "Username of user logging out"),
+    ],
     /* TODO add Responses*/
 )
-fun logout(context: Context) {
-  /* TODO implement*/
+fun logout(context: Context) {/* TODO implement*/
 }

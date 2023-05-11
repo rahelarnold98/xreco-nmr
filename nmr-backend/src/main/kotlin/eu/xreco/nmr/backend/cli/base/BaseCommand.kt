@@ -13,15 +13,15 @@ import org.vitrivr.cottontail.client.SimpleClient
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class BaseCommand(client: SimpleClient, config: Config): NoOpCliktCommand(name = "NMR") {
+class BaseCommand(client: SimpleClient, config: Config) : NoOpCliktCommand(name = "NMR") {
 
-  init {
-    context { helpFormatter = CliktHelpFormatter() }
+    init {
+        context { helpFormatter = CliktHelpFormatter() }
 
-    this.subcommands(
-      SetupCommand(client, config.database.schemaName),
-      ImportCommand(client, config.database.schemaName),
-      QuitCommand()
-    )
-  }
+        this.subcommands(
+            SetupCommand(client, config.database.schemaName),
+            ImportCommand(client, config.database.schemaName),
+            QuitCommand()
+        )
+    }
 }

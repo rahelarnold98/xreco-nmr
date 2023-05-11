@@ -13,23 +13,31 @@ import org.vitrivr.cottontail.client.language.ddl.DropSchema
 /**
  *
  */
-class SetupCommand(private val client: SimpleClient, private val schema: String = "xreco"): CliktCommand(name = "setup") {
+class SetupCommand(private val client: SimpleClient, private val schema: String = "xreco") :
+    CliktCommand(name = "setup") {
 
     /** */
-    private val force: Boolean by option("-f", "--force", help = "Forces the setup to be executed even if the schema already exists.").flag(default = false)
+    private val force: Boolean by option(
+        "-f",
+        "--force",
+        help = "Forces the setup to be executed even if the schema already exists."
+    ).flag(default = false)
 
     /** Flag indicating, that schema should be dropped before starting setup. */
-    private val drop: Boolean by option("-d", "--drop", help = "Tries to drop the schema before executing the setup.").flag(default = false)
+    private val drop: Boolean by option(
+        "-d",
+        "--drop",
+        help = "Tries to drop the schema before executing the setup."
+    ).flag(default = false)
 
     /**
      * Executes the database setup.
      */
-    override fun run() {
-        /* Drop old schema if option has been specified. */
+    override fun run() {/* Drop old schema if option has been specified. */
         if (this.drop) {
             try {
                 this.client.drop(DropSchema(this.schema)).close()
-            }  catch (e: StatusRuntimeException) {
+            } catch (e: StatusRuntimeException) {
                 if (e.status.code != Status.Code.NOT_FOUND) {
                     println("An error occurred while dropping the schema ${this.schema}: ${e.message}")
                     return

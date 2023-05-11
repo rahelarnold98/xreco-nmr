@@ -18,27 +18,27 @@ import org.vitrivr.cottontail.client.SimpleClient
  * @param config The application configuration file.
  */
 fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = this.routes {
-      path("api") {
-          ApiBuilder.before { ctx ->
-              ctx.method()
-              ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-              ctx.header(
-                  Header.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PATCH, PUT, DELETE, OPTIONS")
-              ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization, Content-Type")
-              ctx.header(Header.CONTENT_TYPE, "application/json")
-          }
-        /* TODO: Handlers for API. */
+    path("api") {
+        ApiBuilder.before { ctx ->
+            ctx.method()
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+            ctx.header(
+                Header.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+            )
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, "Authorization, Content-Type")
+            ctx.header(Header.CONTENT_TYPE, "application/json")
+        }/* TODO: Handlers for API. */
         path("authentication") {
             ApiBuilder.get("{username}/{password}") { login(it) }
             ApiBuilder.get("logout/{username}") { logout(it) }
         }
-          path("retrieval") {
-              ApiBuilder.get("{elementId}/{attributes}") { retrieve(it) }
-              ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
-              ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
-              ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
-              ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
-          }
+        path("retrieval") {
+            ApiBuilder.get("{elementId}/{attributes}") { retrieve(it) }
+            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
+            ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
+            ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
+            ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
+        }
         path("basket") {
             post("{basketId}") { createBasket(it) }
             delete("{basketId}") { dropBasket(it) }

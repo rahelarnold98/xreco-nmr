@@ -6,7 +6,7 @@ package eu.xreco.nmr.backend.model.database.features
  * @author Ralph Gasser
  * @version 1.0.0.
  */
-interface LabelFeature: Feature {
+interface LabelFeature : Feature {
     /** The actual label. */
     val label: String
 }

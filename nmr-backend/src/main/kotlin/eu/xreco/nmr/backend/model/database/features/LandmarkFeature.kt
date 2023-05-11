@@ -14,12 +14,17 @@ import org.vitrivr.cottontail.grpc.CottontailGrpc
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class LandmarkFeature(override val mediaResourceId: String, override val label: String, override val start: Long? = null, override val end: Long? = null): LabelFeature {
+data class LandmarkFeature(
+    override val mediaResourceId: String,
+    override val label: String,
+    override val start: Long? = null,
+    override val end: Long? = null
+) : LabelFeature {
 
     @Transient
     override val entity: Entity = LandmarkFeature
 
-    companion object: Entity {
+    companion object : Entity {
         override val name: String = "features_landmark"
 
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
@@ -30,7 +35,8 @@ data class LandmarkFeature(override val mediaResourceId: String, override val la
 
 
         override fun indexes(schema: String): List<CreateIndex> = listOf(
-            CreateIndex(Name.EntityName(schema, name), CottontailGrpc.IndexType.LUCENE).name("idx_label_lucene").column("label")
+            CreateIndex(Name.EntityName(schema, name), CottontailGrpc.IndexType.LUCENE).name("idx_label_lucene")
+                .column("label")
         )
     }
 }

@@ -15,11 +15,11 @@ import java.nio.file.StandardOpenOption
  */
 @Serializable
 data class Config(val api: APIConfig = APIConfig(), val database: DatabaseConfig = DatabaseConfig()) {
-  companion object {
-    fun read(path: Path): Config {
-        Files.newInputStream(path, StandardOpenOption.READ).use {
-            return Json.decodeFromStream<Config>(it)
+    companion object {
+        fun read(path: Path): Config {
+            Files.newInputStream(path, StandardOpenOption.READ).use {
+                return Json.decodeFromStream<Config>(it)
+            }
         }
     }
-  }
 }
