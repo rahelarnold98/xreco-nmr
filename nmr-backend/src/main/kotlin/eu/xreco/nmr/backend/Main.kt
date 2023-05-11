@@ -1,11 +1,8 @@
 package eu.xreco.nmr.backend
 
-import eu.xreco.nmr.backend.api.basket.*
-import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.api.initializeRoutes
 import eu.xreco.nmr.backend.cli.Cli
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.database.CottontailDBClient
 import eu.xreco.nmr.backend.model.status.ErrorStatus
 import eu.xreco.nmr.backend.model.status.ErrorStatusException
 import io.javalin.Javalin
@@ -16,6 +13,7 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import org.vitrivr.cottontail.client.SimpleClient
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
@@ -56,7 +54,15 @@ fun main(args: Array<String>) {
     }
     .exception(Exception::class.java) { e, ctx ->
         /* TODO: Error handling. */
-    }.initializeRoutes(client, config).start(config.api.port)
+      }
+      .initializeRoutes(client, config)
+      .exception(ErrorStatusException::class.java) { e, ctx ->
+        ctx.status(e.code).json(e.toStatus())
+      }
+      .exception(Exception::class.java) { e, ctx ->
+        ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))
+      }
+      .start(config.api.port)
 
     /* Create and start CLI instance. */
     Cli(client, config).loop()

@@ -1,7 +1,7 @@
 package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
-import eu.xreco.nmr.backend.database.CottontailDBClient
+import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.model.status.ErrorStatus
 import eu.xreco.nmr.backend.model.status.ErrorStatusException
 import eu.xreco.nmr.backend.model.status.SuccessStatus
@@ -9,6 +9,10 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import java.util.*
+import org.vitrivr.cottontail.client.SimpleClient
+import org.vitrivr.cottontail.client.language.basics.predicate.Compare
+import org.vitrivr.cottontail.client.language.dql.Query
 
 @OpenApi(
     summary = "Get object of given element",
@@ -45,23 +49,36 @@ fun retrieve(context: Context) {
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
         ])
-fun lookup(context: Context, cottontailDBClient: CottontailDBClient) {
+fun lookup(context: Context, client: SimpleClient, config: Config) {
   val elementId = context.pathParam("elementId")
   val entity = context.pathParam("entity")
   try {
-    val res = cottontailDBClient.lookup(entity, elementId)
-    context.json(res)
+      // prepare query
+      val query =
+          Query("${config.database.schemaName}.${entity}")
+              .where(Compare("mediaResourceId", "=", elementId))
+              .select("label")
+
+      // execute query
+      val results = client.query(query)
+
+      // save results as LinkedList
+      val list = LinkedList<String>()
+      results.forEach { t ->
+          list.add(t.asString("label")!!)
+      }
+      context.json(list)
   } catch (e: StatusRuntimeException) {
     when (e.status.code) {
       Status.Code.INTERNAL -> {
         throw ErrorStatusException(
             400,
-            "The requested element '${cottontailDBClient.getSchemaName()}.${entity}.${elementId} could not be found.")
+            "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found.")
       }
       Status.Code.NOT_FOUND ->
           throw ErrorStatusException(
               404,
-              "The requested element '${cottontailDBClient.getSchemaName()}.${entity}.${elementId} could not be found.")
+              "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found.")
       Status.Code.UNAVAILABLE ->
           throw ErrorStatusException(503, "Connection is currently not available.")
       else -> {
