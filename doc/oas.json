@@ -247,6 +247,78 @@
         "security" : [ ]
       }
     },
+    "/api/retrieval/lookup/{elementId}/{entity}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Get entity of given element",
+        "operationId" : "getValueOfElement",
+        "parameters" : [ {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element which will be returned",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "entity",
+          "in" : "path",
+          "description" : "Descriptor to retrieve data",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/retrieval/similarity/{elementId}/{pageSize}/{page}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
@@ -363,41 +435,35 @@
         "deprecated" : false,
         "security" : [ ]
       }
-    },
-    "/api/retrieval/{elementId}/{entity}" : {
-      "get" : {
-        "tags" : [ "Retrieval" ],
-        "summary" : "Get entity of given element",
-        "operationId" : "getValueOfElement",
-        "parameters" : [ {
-          "name" : "elementId",
-          "in" : "path",
-          "description" : "Id of element which will be returned",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "entity",
-          "in" : "path",
-          "description" : "Descriptor to retrieve data",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : { },
-        "deprecated" : false,
-        "security" : [ ]
-      }
     }
   },
   "components" : {
-    "schemas" : { },
+    "schemas" : {
+      "ErrorStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "description" ]
+      },
+      "SuccessStatus" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "description" ]
+      }
+    },
     "securitySchemes" : {
       "CookieAuth" : {
         "in" : "cookie",
