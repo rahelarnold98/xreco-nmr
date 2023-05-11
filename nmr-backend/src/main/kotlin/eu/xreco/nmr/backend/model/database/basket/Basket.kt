@@ -5,6 +5,7 @@ import eu.xreco.nmr.backend.model.database.Entity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
+import org.vitrivr.cottontail.core.database.Name
 import org.vitrivr.cottontail.core.types.Types
 
 /**
@@ -22,7 +23,7 @@ data class Basket(val baskedId: Int, val name: String): EntityObject {
     companion object: Entity {
         override val name: String = "baskets"
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-        .column(name = "baskedId", type = Types.Int, nullable = false, autoIncrement = true)
-        .column(name = "name", type = Types.String, nullable = false)
+        .column(name = Name.ColumnName("baskedId"), type = Types.Int, nullable = false, autoIncrement = true)
+        .column(name = Name.ColumnName("name"), type = Types.String, nullable = false)
     }
 }
