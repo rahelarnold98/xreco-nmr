@@ -1,10 +1,10 @@
 {
-  "cottontailDB": {
+  "api": {
+    "port": 7070
+  },
+  "database": {
     "host": "localhost",
     "port": 1865,
-    "schemaName": "test"
-  },
-  "api": {
-    "port": 8080
+    "schemaName": "xreco"
   }
 }
