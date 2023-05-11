@@ -21,8 +21,8 @@ import java.util.*
     operationId = "getAttributesOfElement",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("elementId", String::class, "Id of element which will be returned"),
-        OpenApiParam("attributes", String::class, "List of attributes to be returned"),
+        OpenApiParam(name = "elementId", type = String::class, "Id of element which will be returned", required = true),
+        OpenApiParam(name = "attributes", type = String::class, "List of attributes to be returned", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -36,8 +36,8 @@ fun retrieve(context: Context) {/* TODO implement*/
     operationId = "getValueOfElement",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("elementId", String::class, "Id of element which will be returned"),
-        OpenApiParam("entity", String::class, "Descriptor to retrieve data"),
+        OpenApiParam(name = "elementId", type = String::class, description = "Id of element which will be returned", required = true),
+        OpenApiParam(name = "entity", type = String::class, description = "Descriptor to retrieve data", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -92,9 +92,9 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {
     operationId = "getFullTextQuery",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("text", String::class, "Text to query"),
-        OpenApiParam("pageSize", Int::class, "Page size of results"),
-        OpenApiParam("page", Int::class, "Requested page of results"),
+        OpenApiParam(name = "text", type = String::class, description = "Text to query", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
+        OpenApiParam(name = "page", type = Int::class, description = "Requested page of results", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -108,9 +108,9 @@ fun fullText(context: Context) {/* TODO implement*/
     operationId = "getSimilarityQuery",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("elementId", String::class, "Id of element to get most similar of"),
-        OpenApiParam("pageSize", Int::class, "Page size of results"),
-        OpenApiParam("page", Int::class, "Request page of results"),
+        OpenApiParam(name = "elementId", type = String::class, description = "Id of element to get most similar of", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
+        OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -124,9 +124,9 @@ fun similarity(context: Context) {/* TODO implement*/
     operationId = "getFilterQuery",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("condition", String::class, "Condition to filter collection"),
-        OpenApiParam("pageSize", Int::class, "Page size of results"),
-        OpenApiParam("page", Int::class, "Request page of results"),
+        OpenApiParam(name = "condition", type = String::class, description = "Condition to filter collection", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
+        OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
     /* TODO add Responses*/
 )

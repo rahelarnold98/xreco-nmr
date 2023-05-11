@@ -3,11 +3,11 @@
   "info" : {
     "title" : "NMR Backend API",
     "summary" : null,
-    "description" : "API for XREco Neural Media Repository (NMR) backend, Version 2.0.0",
+    "description" : "API for XREco Neural Media Repository (NMR) backend, Version 1.0.0",
     "termsOfService" : null,
     "contact" : null,
     "license" : null,
-    "version" : "2.0.0"
+    "version" : "1.0.0"
   },
   "paths" : {
     "/api/authentication/logout/{username}" : {
@@ -19,7 +19,7 @@
           "name" : "username",
           "in" : "path",
           "description" : "Username of user logging out",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -40,7 +40,7 @@
           "name" : "username",
           "in" : "path",
           "description" : "Username of user logging in",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -50,7 +50,7 @@
           "name" : "password",
           "in" : "path",
           "description" : "Password of user logging in",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -71,7 +71,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "Id of user",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -111,7 +111,7 @@
           "name" : "basketId",
           "in" : "path",
           "description" : "Id of basket which gets deleted",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -130,38 +130,7 @@
           "name" : "basketId",
           "in" : "path",
           "description" : "Id of basket",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : { },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/{basketId}/{elementID}" : {
-      "delete" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Drops a specific element of a specific basket.",
-        "operationId" : "deleteFromBasket",
-        "parameters" : [ {
-          "name" : "basketId",
-          "in" : "path",
-          "description" : "Id of basket",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "elementId",
-          "in" : "path",
-          "description" : "Id of element that will be added",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -182,7 +151,7 @@
           "name" : "basketId",
           "in" : "path",
           "description" : "Id of basket",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -192,7 +161,36 @@
           "name" : "elementId",
           "in" : "path",
           "description" : "Id of element that will be added",
-          "required" : false,
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : { },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "delete" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Drops a specific element of a specific basket.",
+        "operationId" : "deleteFromBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "Id of basket",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element that will be added",
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -213,7 +211,7 @@
           "name" : "condition",
           "in" : "path",
           "description" : "Condition to filter collection",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -223,7 +221,7 @@
           "name" : "pageSize",
           "in" : "path",
           "description" : "Page size of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -234,7 +232,7 @@
           "name" : "page",
           "in" : "path",
           "description" : "Request page of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -256,7 +254,7 @@
           "name" : "elementId",
           "in" : "path",
           "description" : "Id of element which will be returned",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -266,7 +264,7 @@
           "name" : "entity",
           "in" : "path",
           "description" : "Descriptor to retrieve data",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -328,7 +326,7 @@
           "name" : "elementId",
           "in" : "path",
           "description" : "Id of element to get most similar of",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -338,7 +336,7 @@
           "name" : "pageSize",
           "in" : "path",
           "description" : "Page size of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -349,7 +347,7 @@
           "name" : "page",
           "in" : "path",
           "description" : "Request page of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -371,7 +369,7 @@
           "name" : "text",
           "in" : "path",
           "description" : "Text to query",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -381,7 +379,7 @@
           "name" : "pageSize",
           "in" : "path",
           "description" : "Page size of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -392,7 +390,7 @@
           "name" : "page",
           "in" : "path",
           "description" : "Requested page of results",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -414,7 +412,7 @@
           "name" : "elementId",
           "in" : "path",
           "description" : "Id of element which will be returned",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -424,7 +422,7 @@
           "name" : "attributes",
           "in" : "path",
           "description" : "List of attributes to be returned",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {

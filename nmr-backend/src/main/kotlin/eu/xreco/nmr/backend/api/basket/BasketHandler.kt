@@ -13,7 +13,7 @@ import io.javalin.openapi.OpenApiParam
     operationId = "postBasket",
     methods = [HttpMethod.POST],
     pathParams = [
-        OpenApiParam("basketId", String::class, "Id of basket which gets deleted"),
+        OpenApiParam(name = "basketId", type = String::class, "Id of basket which gets deleted"),
     ],
     /* TODO add Responses, RequestBody*/
 )
@@ -27,7 +27,7 @@ fun createBasket(context: Context) {/* TODO implement*/
     operationId = "deleteBasket",
     methods = [HttpMethod.DELETE],
     pathParams = [
-        OpenApiParam("basketId", String::class, "Id of basket which gets deleted"),
+        OpenApiParam(name = "basketId", type = String::class, "Id of basket which gets deleted", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -41,8 +41,8 @@ fun dropBasket(context: Context) {/* TODO implement*/
     operationId = "putToBasket",
     methods = [HttpMethod.PUT],
     pathParams = [
-        OpenApiParam("basketId", String::class, "Id of basket"),
-        OpenApiParam("elementId", String::class, "Id of element that will be added"),
+        OpenApiParam(name = "basketId", type = String::class, description = "Id of basket", required = true),
+        OpenApiParam(name = "elementId", type = String::class, description = "Id of element that will be added", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -51,13 +51,13 @@ fun addElement(context: Context) {/* TODO implement*/
 
 @OpenApi(
     summary = "Drops a specific element of a specific basket.",
-    path = "/api/basket/{basketId}/{elementID}",
+    path = "/api/basket/{basketId}/{elementId}",
     tags = [Basket],
     operationId = "deleteFromBasket",
     methods = [HttpMethod.DELETE],
     pathParams = [
-        OpenApiParam("basketId", String::class, "Id of basket"),
-        OpenApiParam("elementId", String::class, "Id of element that will be added"),
+        OpenApiParam(name = "basketId", type = String::class, description = "Id of basket", required = true),
+        OpenApiParam(name = "elementId", type = String::class, description = "Id of element that will be added", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -71,7 +71,7 @@ fun dropElement(context: Context) {/* TODO implement*/
     operationId = "getElementsInBasket",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("basketId", String::class, "Id of basket"),
+        OpenApiParam(name = "basketId", type = String::class, description = "Id of basket", required = true),
     ],
     /* TODO add Responses*/
 )
@@ -85,7 +85,7 @@ fun listElements(context: Context) {/* TODO implement*/
     operationId = "getBasketsOfUser",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam("userId", String::class, "Id of user"),
+        OpenApiParam(name = "userId", type = String::class, description = "Id of user", required = true),
     ],
     /* TODO add Responses*/
 )
