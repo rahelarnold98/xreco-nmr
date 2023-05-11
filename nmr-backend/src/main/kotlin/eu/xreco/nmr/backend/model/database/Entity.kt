@@ -16,6 +16,7 @@ interface Entity {
     /**
      * The [CreateEntity] command for this [Entity].
      *
+     * @param schema The name of the schema in which the [Entity] is located.
      * @return [CreateEntity] command that should be executed as part of the setup.
      */
     fun create(schema: String = "xreco"): CreateEntity
@@ -23,7 +24,8 @@ interface Entity {
     /**
      * The [CreateIndex] commands that must be executed for this [Entity].
      *
+     * @param schema The name of the schema in which the [Entity] is located.
      * @return A [List] of [CreateIndex] commands that should be executed as part of the setup.
      */
-    fun indexes(): List<CreateIndex> = emptyList()
+    fun indexes(schema: String = "xreco"): List<CreateIndex> = emptyList()
 }
