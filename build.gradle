@@ -17,7 +17,7 @@ plugins {
 }
 
 /* Define required variables. */
-def fullOAS = 'http://localhost:8080/swagger-docs'
+def fullOAS = 'http://localhost:7070/swagger-docs'
 def oasFile = "${project.projectDir}/doc/oas.json"
 
 openApiGenerate {
