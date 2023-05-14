@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import eu.xreco.nmr.backend.model.cineast.LegacyLandmarks
 import eu.xreco.nmr.backend.model.cineast.MediaObject
 import eu.xreco.nmr.backend.model.cineast.MediaSegment
+import eu.xreco.nmr.backend.model.cineast.VectorFeature
 import eu.xreco.nmr.backend.model.database.core.MediaResource
 import eu.xreco.nmr.backend.model.database.features.LandmarkFeature
 import kotlinx.serialization.json.DecodeSequenceMode
@@ -14,6 +15,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeToSequence
 import org.vitrivr.cottontail.client.SimpleClient
 import org.vitrivr.cottontail.client.language.dml.BatchInsert
+import org.vitrivr.cottontail.core.values.FloatVectorValue
 import org.vitrivr.cottontail.core.values.IntValue
 import org.vitrivr.cottontail.core.values.LongValue
 import org.vitrivr.cottontail.core.values.StringValue
@@ -25,7 +27,7 @@ import java.nio.file.Paths
  * A [CliktCommand] that can be used to import basic metadata in the Cineast format.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.0.1
  */
 class CineastImport(private val client: SimpleClient, private val schema: String = "xreco") :
     CliktCommand(name = "cineast") {
@@ -34,6 +36,8 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         const val FILENAME_CINEAST_MEDIAOBJECT = "cineast_multimediaobject.json"
         const val FILENAME_CINEAST_SEGMENT = "cineast_segment.json"
         const val FILENAME_FEATURE_LANDMARK = "features_landmarks.json"
+        const val FILENAME_FEATURE_CLIP = "features_clip.json"
+
     }
 
     /** The [Path] to the input file. */
@@ -54,8 +58,69 @@ class CineastImport(private val client: SimpleClient, private val schema: String
 
         /* Start feature import. */
         this.loadLegacyLandmarks(this.input.resolve(FILENAME_FEATURE_LANDMARK), segmentMap)
+        this.loadClip(this.input.resolve(FILENAME_FEATURE_CLIP), segmentMap)
     }
 
+    /**
+     * Imports a CLIP vector feature
+     *
+     * @param path The [Path] to the file that contains the landmarks.
+     * @param mapping A [Map] that maps segment IDs to media resource IDs and start/end times.
+     * @return True on success, false on failure
+     */
+    private fun loadClip(path: Path, mapping: Map<String, Triple<String, Long, Long>>): Boolean {
+        if (!Files.exists(path)) {
+            System.err.println("Import of CLIP feature failed. File $path does not seem to exist.")
+            return false
+        }
+
+        var counter = 0
+        var success = true
+        val txId = this.client.begin()
+        try {
+            Files.newInputStream(path).use {
+                val insert =
+                    BatchInsert("$schema.${LandmarkFeature.name}").columns("mediaResourceId", "feature", "start", "end")
+                        .txId(txId)
+                for (l in Json.decodeToSequence<VectorFeature>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
+                    val segment = mapping[l.id] ?: continue
+                    if (!insert.values(
+                            StringValue(segment.first),
+                            FloatVectorValue(l.feature),
+                            LongValue(segment.second),
+                            LongValue(segment.second)
+                        )
+                    ) {
+                        this.client.insert(insert).close()
+                        insert.clear()
+                        insert.values(
+                            StringValue(segment.first),
+                            FloatVectorValue(l.feature),
+                            LongValue(segment.second),
+                            LongValue(segment.second)
+                        )
+                    }
+                    counter += 1
+                }
+
+                if (insert.count() > 0) {
+                    this.client.insert(insert).close()
+                }
+            }
+        } catch (e: Throwable) {
+            System.err.println("An error occurred while importing CLIP features: ${e.message}")
+            success = false
+        }
+
+        if (success) {
+            this.client.commit(txId)
+            println("Successfully imported $counter CLIP features.")
+        } else {
+            this.client.rollback(txId)
+            println("An error occurred while importing CLIP features.")
+        }
+        return success
+    }
 
     /**
      * Imports the legacy landmark annotations.
