@@ -9,6 +9,7 @@ import eu.xreco.nmr.backend.model.cineast.MediaObject
 import eu.xreco.nmr.backend.model.cineast.MediaSegment
 import eu.xreco.nmr.backend.model.cineast.VectorFeature
 import eu.xreco.nmr.backend.model.database.core.MediaResource
+import eu.xreco.nmr.backend.model.database.features.ClipFeature
 import eu.xreco.nmr.backend.model.database.features.LandmarkFeature
 import kotlinx.serialization.json.DecodeSequenceMode
 import kotlinx.serialization.json.Json
@@ -80,7 +81,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         try {
             Files.newInputStream(path).use {
                 val insert =
-                    BatchInsert("$schema.${LandmarkFeature.name}").columns("mediaResourceId", "feature", "start", "end")
+                    BatchInsert("$schema.${ClipFeature.name}").columns("mediaResourceId", "feature", "start", "end")
                         .txId(txId)
                 for (l in Json.decodeToSequence<VectorFeature>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
                     val segment = mapping[l.id] ?: continue
@@ -88,7 +89,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
                             LongValue(segment.second),
-                            LongValue(segment.second)
+                            LongValue(segment.third)
                         )
                     ) {
                         this.client.insert(insert).close()
@@ -97,7 +98,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
                             LongValue(segment.second),
-                            LongValue(segment.second)
+                            LongValue(segment.third)
                         )
                     }
                     counter += 1

@@ -3,8 +3,6 @@ package eu.xreco.nmr.backend.model.database.features
 import eu.xreco.nmr.backend.model.database.Entity
 import kotlinx.serialization.Transient
 import org.vitrivr.cottontail.client.language.ddl.CreateEntity
-import org.vitrivr.cottontail.core.database.Name
-import org.vitrivr.cottontail.core.types.Types
 
 /** Represents a [Float] vector based CLIP in the XRECO data model.
  *
@@ -24,10 +22,10 @@ data class ClipFeature(
     companion object : Entity {
         override val name: String = "features_clip"
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-            .column(name = Name.ColumnName("mediaResourceId"), type = Types.String, nullable = false)
-            .column(name = Name.ColumnName("feature"), type = Types.FloatVector(512), nullable = false)
-            .column(name = Name.ColumnName("start"), type = Types.Long, nullable = false)
-            .column(name = Name.ColumnName("end"), type = Types.Long, nullable = false)
+            .column(name = "mediaResourceId", type = "String", nullable = false)
+            .column(name = "feature", type = "Float_Vector", length = 512, nullable = false)
+            .column(name = "start", type = "Long", nullable = false)
+            .column(name = "end", type = "Long", nullable = false)
     }
 
     override fun equals(other: Any?): Boolean {
