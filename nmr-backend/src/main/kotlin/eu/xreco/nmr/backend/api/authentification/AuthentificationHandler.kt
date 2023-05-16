@@ -1,10 +1,11 @@
 package eu.xreco.nmr.backend.api.authentification
 
 import eu.xreco.nmr.backend.api.Authentication
+import eu.xreco.nmr.backend.model.api.status.ErrorStatus
+import eu.xreco.nmr.backend.model.api.status.SuccessStatus
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.*
+
 
 @OpenApi(
     summary = "Login function for a user.",
@@ -17,7 +18,12 @@ import io.javalin.openapi.OpenApiParam
         OpenApiParam(name = "username", type = String::class, description = "Username of user logging in", required = true),
         OpenApiParam(name = "password", type = String::class, description = "Password of user logging in", required = true),
     ],
-    /* TODO add Responses*/
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+    ]
 )
 fun login(context: Context) {/* TODO implement*/
 }
@@ -31,7 +37,12 @@ fun login(context: Context) {/* TODO implement*/
     pathParams = [
         OpenApiParam(name = "username", type = String::class, description = "Username of user logging out", required = true),
     ],
-    /* TODO add Responses*/
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+    ]
 )
 fun logout(context: Context) {/* TODO implement*/
 }
