@@ -3,8 +3,8 @@ package eu.xreco.nmr.backend
 import eu.xreco.nmr.backend.api.initializeRoutes
 import eu.xreco.nmr.backend.cli.Cli
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.status.ErrorStatus
-import eu.xreco.nmr.backend.model.status.ErrorStatusException
+import eu.xreco.nmr.backend.model.api.status.ErrorStatus
+import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import io.javalin.Javalin
 import io.javalin.http.staticfiles.Location
 import io.javalin.openapi.CookieAuth
