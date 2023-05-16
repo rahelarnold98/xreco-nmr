@@ -34,20 +34,21 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
         }
         path("retrieval") {
             ApiBuilder.get("{elementId}/{attributes}") { retrieve(it) }
-            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
+            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it) }
             ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
             ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
         path("basket") {
-            ApiBuilder.post("{basketId}") { createBasket(it) }
-            ApiBuilder.delete("{basketId}") { dropBasket(it) }
-            ApiBuilder.get("{basketId}") { listElements(it) }
-            path("{basketId}") {
+            ApiBuilder.post("{basketName}") { createBasket(it) }
+            ApiBuilder.delete("{basketName}") { dropBasket(it) }
+            ApiBuilder.get("{basketName}") { listElements(it) }
+            path("{basketName}") {
                 ApiBuilder.post("{elementId}") { addElement(it) }
                 ApiBuilder.delete("{elementId}") { dropElement(it) }
             }
-            ApiBuilder.get("list/{userId}") { list(it) }
+            ApiBuilder.get("list") { list(it) }
+            ApiBuilder.get("list/{userId}") { listUser(it) }
         }
     }
 }
