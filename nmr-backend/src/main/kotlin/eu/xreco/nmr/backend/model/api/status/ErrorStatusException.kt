@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.model.status
+package eu.xreco.nmr.backend.model.api.status
 
 /**
  * A [ErrorStatusException] as used by the NMR API.
