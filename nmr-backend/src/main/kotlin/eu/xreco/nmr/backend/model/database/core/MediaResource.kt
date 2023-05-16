@@ -31,12 +31,12 @@ data class MediaResource(
     companion object : Entity {
         override val name: String = "media_resources"
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-            .column(name = Name.ColumnName("mediaResourceId"), type = Types.String, nullable = false)
-            .column(name = Name.ColumnName("type"), type = Types.Int, nullable = false)
-            .column(name = Name.ColumnName("title"), type = Types.String, nullable = true)
-            .column(name = Name.ColumnName("description"), type = Types.String, nullable = true)
-            .column(name = Name.ColumnName("uri"), type = Types.String, nullable = false)
-            .column(name = Name.ColumnName("path"), type = Types.String, nullable = false)
+            .column(name = "mediaResourceId", type = "String", nullable = false)
+            .column(name = "type", type ="Int", nullable = false)
+            .column(name = "title",type = "String", nullable = true)
+            .column(name = "description", type = "String", nullable = true)
+            .column(name = "uri", type = "String", nullable = false)
+            .column(name = "path", type = "String", nullable = false)
 
 
         override fun indexes(schema: String): List<CreateIndex> = listOf(

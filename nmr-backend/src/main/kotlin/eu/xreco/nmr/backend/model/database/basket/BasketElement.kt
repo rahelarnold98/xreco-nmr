@@ -24,8 +24,8 @@ data class BasketElement(val baskedId: Int, val mediaResourceId: String): Entity
         override val name: String = "basket_elements"
 
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-            .column(name = Name.ColumnName("baskedId"), type = Types.Int, nullable = false)
-            .column(name = Name.ColumnName("mediaResourceId"), type = Types.String, nullable = false)
+            .column(name = "baskedId", type = "Int", nullable = false)
+            .column(name = "mediaResourceId", type = "String", nullable = false)
 
     }
 }
