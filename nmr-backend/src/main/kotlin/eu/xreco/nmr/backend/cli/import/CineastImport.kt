@@ -153,7 +153,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                             StringValue(segment.first),
                             StringValue(l.feature),
                             LongValue(segment.second),
-                            LongValue(segment.second)
+                            LongValue(segment.third)
                         )
                     ) {
                         this.client.insert(insert).close()
@@ -162,7 +162,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                             StringValue(segment.first),
                             StringValue(l.feature),
                             LongValue(segment.second),
-                            LongValue(segment.second)
+                            LongValue(segment.third)
                         )
                     }
                     counter += 1

@@ -28,10 +28,10 @@ data class LandmarkFeature(
         override val name: String = "features_landmark"
 
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-            .column(name = Name.ColumnName("mediaResourceId"), type = Types.String, nullable = false)
-            .column(name = Name.ColumnName("label"), type = Types.String, nullable = false)
-            .column(name = Name.ColumnName("start"), type = Types.Long, nullable = false)
-            .column(name = Name.ColumnName("end"), type = Types.Long, nullable = false)
+            .column(name = "mediaResourceId", type = "String", nullable = false)
+            .column(name = "label", type = "String", nullable = false)
+            .column(name = "start", type = "Long", nullable = false)
+            .column(name = "end", type = "Long", nullable = false)
 
 
         override fun indexes(schema: String): List<CreateIndex> = listOf(
