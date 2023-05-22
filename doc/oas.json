@@ -26,7 +26,48 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
@@ -57,7 +98,100 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/list/all" : {
+      "get" : {
+        "tags" : [ "Basket" ],
+        "summary" : "List all existing baskets",
+        "operationId" : "getAllBaskets",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BasketList"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
@@ -78,28 +212,110 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
     },
-    "/api/basket/{basketId}" : {
+    "/api/basket/{basketName}" : {
       "post" : {
         "tags" : [ "Basket" ],
         "summary" : "Creates a new basket.",
         "operationId" : "postBasket",
         "parameters" : [ {
-          "name" : "basketId",
+          "name" : "basketName",
           "in" : "path",
-          "description" : "Id of basket which gets deleted",
-          "required" : false,
+          "description" : "Name of basket which gets deleted",
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       },
@@ -108,9 +324,9 @@
         "summary" : "Deletes a specific basket.",
         "operationId" : "deleteBasket",
         "parameters" : [ {
-          "name" : "basketId",
+          "name" : "basketName",
           "in" : "path",
-          "description" : "Id of basket which gets deleted",
+          "description" : "Name of basket which gets deleted",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -118,7 +334,48 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       },
@@ -127,9 +384,9 @@
         "summary" : "List all elements of a specific basket.",
         "operationId" : "getElementsInBasket",
         "parameters" : [ {
-          "name" : "basketId",
+          "name" : "basketName",
           "in" : "path",
-          "description" : "Id of basket",
+          "description" : "Name of basket",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -137,20 +394,61 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BasketElement"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
     },
-    "/api/basket/{basketId}/{elementId}" : {
+    "/api/basket/{basketName}/{elementId}" : {
       "put" : {
         "tags" : [ "Basket" ],
         "summary" : "Adds a specific element to a specific basket.",
         "operationId" : "putToBasket",
         "parameters" : [ {
-          "name" : "basketId",
+          "name" : "basketName",
           "in" : "path",
-          "description" : "Id of basket",
+          "description" : "Name of basket",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -168,18 +466,61 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
-      },
+      }
+    },
+    "/api/basketName/{basketName}/{elementId}" : {
       "delete" : {
         "tags" : [ "Basket" ],
         "summary" : "Drops a specific element of a specific basket.",
         "operationId" : "deleteFromBasket",
         "parameters" : [ {
-          "name" : "basketId",
+          "name" : "basketName",
           "in" : "path",
-          "description" : "Id of basket",
+          "description" : "Name of basket",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -197,7 +538,48 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BasketElement"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
@@ -240,7 +622,48 @@
             "format" : "int32"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RetrievalResult"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
@@ -277,7 +700,11 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "type" : "array",
+                  "items" : {
+                    "type" : "number",
+                    "format" : "float"
+                  }
                 }
               }
             }
@@ -355,20 +782,71 @@
             "format" : "int32"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScoredMedia"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
     },
-    "/api/retrieval/text/{text}/{pageSize}/{page}" : {
+    "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Create a fulltext query",
+        "summary" : "Create a fulltext query.",
         "operationId" : "getFullTextQuery",
         "parameters" : [ {
+          "name" : "entity",
+          "in" : "path",
+          "description" : "Name of the entity to query.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "text",
           "in" : "path",
-          "description" : "Text to query",
+          "description" : "Text to search for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -378,7 +856,7 @@
         }, {
           "name" : "pageSize",
           "in" : "path",
-          "description" : "Page size of results",
+          "description" : "Page size of a single results page.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -389,7 +867,7 @@
         }, {
           "name" : "page",
           "in" : "path",
-          "description" : "Requested page of results",
+          "description" : "Requested page of results. Zero-based index (first page = 0).",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -398,30 +876,61 @@
             "format" : "int32"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RetrievalResult"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
     },
-    "/api/retrieval/{elementId}/{attributes}" : {
+    "/api/retrieval/{elementId}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Get object of given element",
+        "summary" : "Get attributes of given element",
         "operationId" : "getAttributesOfElement",
         "parameters" : [ {
           "name" : "elementId",
           "in" : "path",
-          "description" : "Id of element which will be returned",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "attributes",
-          "in" : "path",
-          "description" : "List of attributes to be returned",
+          "description" : "Id of element which attributes will be returned",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -429,7 +938,48 @@
             "type" : "string"
           }
         } ],
-        "responses" : { },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Media"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
         "deprecated" : false,
         "security" : [ ]
       }
@@ -437,6 +987,114 @@
   },
   "components" : {
     "schemas" : {
+      "BasketElement" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "basketId" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "mediaResourceId" : {
+            "type" : "string"
+          },
+          "entity" : {
+            "$ref" : "#/components/schemas/Entity"
+          }
+        },
+        "required" : [ "basketId", "mediaResourceId", "entity" ]
+      },
+      "BasketList" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "baskets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BasketElement"
+            }
+          }
+        },
+        "required" : [ "baskets" ]
+      },
+      "Media" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "mediaResourceId" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "uri" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RetrievalResult" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScoredMedia"
+            }
+          }
+        },
+        "required" : [ "page", "pageSize", "items" ]
+      },
+      "ScoredMedia" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "id", "score" ]
+      },
+      "Text" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "feature" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "feature" ]
+      },
       "ErrorStatus" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -460,6 +1118,16 @@
           }
         },
         "required" : [ "description" ]
+      },
+      "Entity" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name" ]
       }
     },
     "securitySchemes" : {

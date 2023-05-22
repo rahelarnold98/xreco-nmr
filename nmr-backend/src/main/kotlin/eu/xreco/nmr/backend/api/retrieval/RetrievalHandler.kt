@@ -2,9 +2,9 @@ package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.api.retrieval.Media
-import eu.xreco.nmr.backend.model.api.retrieval.MediaList
-import eu.xreco.nmr.backend.model.api.retrieval.SimilarityMedia
+import eu.xreco.nmr.backend.model.api.retrieval.MediaItem
+import eu.xreco.nmr.backend.model.api.retrieval.RetrievalResult
+import eu.xreco.nmr.backend.model.api.retrieval.ScoredMediaItem
 import eu.xreco.nmr.backend.model.api.retrieval.Text
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
@@ -35,7 +35,7 @@ import kotlin.String
         ),
     ],
     responses = [
-        OpenApiResponse("200", [OpenApiContent(Media::class)]),
+        OpenApiResponse("200", [OpenApiContent(MediaItem::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
@@ -56,10 +56,10 @@ fun retrieve(context: Context, client: SimpleClient, config: Config) {/* TODO im
         val results = client.query(query)
 
         // save results as LinkedList
-        var media: Media
+        var media: MediaItem
         val list = LinkedList<Text>()
         results.forEach { t ->
-            media = Media(
+            media = MediaItem(
                 t.asString("mediaResourceId"),
                 t.asString("description"),
                 t.asInt("type"),
@@ -200,24 +200,22 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
 }
 
 @OpenApi(
-    summary = "Create a fulltext query",
-    path = "/api/retrieval/text/{text}/{entity}/{pageSize}/{page}",
+    summary = "Create a fulltext query.",
+    path = "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}",
     tags = [Retrieval],
     operationId = "getFullTextQuery",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "text", type = String::class, description = "Text to query", required = true),
-        OpenApiParam(name = "entity", type = String::class, description = "Entity to query", required = true),
-        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
-        OpenApiParam(name = "page", type = Int::class, description = "Requested page of results", required = true),
+        OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
+        OpenApiParam(name = "text", type = String::class, description = "Text to search for.", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of a single results page.", required = true),
+        OpenApiParam(name = "page", type = Int::class, description = "Requested page of results. Zero-based index (first page = 0).", required = true)
     ],
     responses = [
-        OpenApiResponse(
-            "200", [OpenApiContent(MediaList::class)]
-        ), // TODO check what is the order --> could be a [ScoredMediaList]
+        OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
-        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)])
     ]
 )
 
@@ -228,36 +226,27 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {/* TODO im
     val page = context.pathParam("page").toInt()
     try {
         // prepare query
-        val query = Query("${config.database.schemaName}.${entity}").fulltext("label", text, "score")
-            //.select("mediaResourceId")
-            //.select("score")
+        val query = Query("${config.database.schemaName}.$entity")
+            .fulltext("label", text, "score")
+            .select("mediaResourceId")
+            .select("start")
+            .select("end")
             .order("score", Direction.DESC)
-
-            .limit((page * pageSize).toLong())
-        //.order("label", Direction.DESC)
-        //val query = Query("${config.database.schemaName}.${entity}").select("*").limit((page * pageSize).toLong())
-        /*
-                    .select("label")
-                    .fulltext(label, text, DB_DISTANCE_VALUE_QUALIFIER)
-                    .queryId(generateQueryID("ft-rows", queryConfig))
-                    .order(DB_DISTANCE_VALUE_QUALIFIER, Direction.DESC)
-                    .limit(rows);*/
-
-        // execute query
-        val results = client.query(query)
+            .limit(pageSize.toLong()).skip(page * pageSize.toLong())
 
         // save results as LinkedList
-        val list = LinkedList<String>()
-        var iterator = 0
-
-        results.forEach { t ->
-            // verify if result is on desired page
-            if ((page - 1) * pageSize <= iterator && iterator <= page * pageSize) {
-                list.add(t.asString("label")!!)
-            }
-            iterator++
+        val list = ArrayList<ScoredMediaItem>(pageSize)
+        client.query(query).forEach { t ->
+            list.add(
+                ScoredMediaItem(
+                    t.asString("mediaResourceId")!!,
+                    t.asDouble("score")!!,
+                    t.asLong("start")!!,
+                    t.asLong("end")!!
+                )
+            )
         }
-        context.json(list)
+        context.json(RetrievalResult(page, pageSize, list))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
             Status.Code.INTERNAL -> {
@@ -296,7 +285,7 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {/* TODO im
         OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
     responses = [
-        OpenApiResponse("200", [OpenApiContent(SimilarityMedia::class)]),
+        OpenApiResponse("200", [OpenApiContent(ScoredMediaItem::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
@@ -395,7 +384,7 @@ fun similarity(context: Context, client: SimpleClient, config: Config) {/* TODO 
         OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
     responses = [
-        OpenApiResponse("200", [OpenApiContent(MediaList::class)]),
+        OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
