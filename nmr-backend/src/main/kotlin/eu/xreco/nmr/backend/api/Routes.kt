@@ -33,10 +33,10 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             ApiBuilder.get("logout/{username}") { logout(it) }
         }
         path("retrieval") {
-            ApiBuilder.get("{elementId}/{attributes}") { retrieve(it) }
-            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it) }
-            ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it) }
-            ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it) }
+            ApiBuilder.get("{elementId}") { retrieve(it,  client, config) }
+            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
+            ApiBuilder.get("text/{text}/{pageSize}/{page}") { fullText(it, client, config) }
+            ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it, client, config) }
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
         path("basket") {
