@@ -40,15 +40,16 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
         path("basket") {
-            ApiBuilder.post("{basketName}") { createBasket(it) }
-            ApiBuilder.delete("{basketName}") { dropBasket(it) }
-            ApiBuilder.get("{basketName}") { listElements(it) }
+            ApiBuilder.post("{basketName}") { createBasket(it, client, config) }
+            ApiBuilder.delete("{basketName}") { dropBasket(it, client, config) }
+            ApiBuilder.get("{basketName}") { listElements(it, client, config) }
+            ApiBuilder.get("list/all") { listAll(it, client, config) }
+
             path("{basketName}") {
-                ApiBuilder.post("{elementId}") { addElement(it) }
-                ApiBuilder.delete("{elementId}") { dropElement(it) }
+                ApiBuilder.put("{elementId}") { addElement(it, client, config) }
+                ApiBuilder.delete("{elementId}") { dropElement(it, client, config) }
             }
-            ApiBuilder.get("list") { list(it) }
-            ApiBuilder.get("list/{userId}") { listUser(it) }
+            ApiBuilder.get("list/{userId}") { listUser(it, client, config) }
         }
     }
 }

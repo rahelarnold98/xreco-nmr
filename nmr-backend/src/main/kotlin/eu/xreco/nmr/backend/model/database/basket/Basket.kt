@@ -15,7 +15,7 @@ import org.vitrivr.cottontail.core.types.Types
  * @version 1.0.0
  */
 @Serializable
-data class Basket(val baskedId: Int, val name: String) : EntityObject {
+data class Basket(val basketId: Int, val name: String) : EntityObject {
 
 	@Transient
 	override val entity: Entity = Basket
@@ -23,7 +23,7 @@ data class Basket(val baskedId: Int, val name: String) : EntityObject {
 	companion object : Entity {
 		override val name: String = "baskets"
 		override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
-			.column(name = "baskedId", type = "Int", nullable = false, autoIncrement = true)
+			.column(name = "basketId", type = "Int", nullable = false, autoIncrement = true)
 			.column(name = "name", type = "String", nullable = false)
 	}
 }

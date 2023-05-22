@@ -1,3 +1,6 @@
 package eu.xreco.nmr.backend.model.api.basekt
 
-data class BasketElement(val baskedId: Int, val name: String, val elements: List<String>)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class BasketElement(val basketId: Int, val name: String, val elements: List<String>)
