@@ -225,7 +225,15 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {/* TODO im
     val pageSize = context.pathParam("pageSize").toInt()
     val page = context.pathParam("page").toInt()
     try {
-        // prepare query
+        /* Determine how many entries can be found by the query. */
+        var count = 0L
+        val countQuery = Query("${config.database.schemaName}.$entity").fulltext("label", text, "score").count()
+        client.query(countQuery).forEach {
+            count = it.asLong(0)!!
+        }
+
+        /* Query and save results to list*/
+        val list = ArrayList<ScoredMediaItem>(pageSize)
         val query = Query("${config.database.schemaName}.$entity")
             .fulltext("label", text, "score")
             .select("mediaResourceId")
@@ -233,20 +241,12 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {/* TODO im
             .select("end")
             .order("score", Direction.DESC)
             .limit(pageSize.toLong()).skip(page * pageSize.toLong())
-
-        // save results as LinkedList
-        val list = ArrayList<ScoredMediaItem>(pageSize)
         client.query(query).forEach { t ->
-            list.add(
-                ScoredMediaItem(
-                    t.asString("mediaResourceId")!!,
-                    t.asDouble("score")!!,
-                    t.asLong("start")!!,
-                    t.asLong("end")!!
-                )
-            )
+            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asLong("start")!!, t.asLong("end")!!))
         }
-        context.json(RetrievalResult(page, pageSize, list))
+
+        /* Send results. */
+        context.json(RetrievalResult(page, pageSize, count, list))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
             Status.Code.INTERNAL -> {

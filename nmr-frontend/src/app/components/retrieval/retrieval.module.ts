@@ -3,6 +3,7 @@ import {BrowserModule} from "@angular/platform-browser";
 import {CommonModule, NgOptimizedImage} from "@angular/common";
 import {SearchComponent} from "./search/search.component";
 import {MatButtonModule} from "@angular/material/button";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
     declarations: [SearchComponent],
@@ -10,7 +11,8 @@ import {MatButtonModule} from "@angular/material/button";
         BrowserModule,
         CommonModule,
         NgOptimizedImage,
-        MatButtonModule
+        MatButtonModule,
+        FormsModule
     ],
     providers: [],
     bootstrap: [SearchComponent]

@@ -788,7 +788,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ScoredMedia"
+                  "$ref" : "#/components/schemas/ScoredMediaItem"
                 }
               }
             }
@@ -944,7 +944,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/Media"
+                  "$ref" : "#/components/schemas/MediaItem"
                 }
               }
             }
@@ -1017,7 +1017,7 @@
         },
         "required" : [ "baskets" ]
       },
-      "Media" : {
+      "MediaItem" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
@@ -1054,16 +1054,20 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "count" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
           "items" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ScoredMedia"
+              "$ref" : "#/components/schemas/ScoredMediaItem"
             }
           }
         },
-        "required" : [ "page", "pageSize", "items" ]
+        "required" : [ "page", "pageSize", "count", "items" ]
       },
-      "ScoredMedia" : {
+      "ScoredMediaItem" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
