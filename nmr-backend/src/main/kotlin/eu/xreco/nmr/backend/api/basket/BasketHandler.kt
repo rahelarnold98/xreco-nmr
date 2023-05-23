@@ -40,11 +40,8 @@ import java.util.*
 fun createBasket(context: Context, client: SimpleClient, config: Config) {
     val name = context.pathParam("basketName")
     try {
-        val txId = client.begin()
-        val query =
-            Insert("${config.database.schemaName}.${"baskets"}").value("name", StringValue("testBasket5")).txId(txId)
+        val query = Insert("${config.database.schemaName}.${"baskets"}").value("name", StringValue(name))
         client.insert(query).close()
-        client.commit(txId)
         context.json(SuccessStatus("Successfully inserted $name into ${config.database.schemaName}.${"baskets"}"))
 
     } catch (e: StatusRuntimeException) {
@@ -89,7 +86,7 @@ fun dropBasket(context: Context, client: SimpleClient, config: Config) {
     try {
 
         val delete = Delete("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", name))
-        client.delete(delete)
+        client.delete(delete).close()
         context.json(SuccessStatus("Successfully deleted $name from ${config.database.schemaName}.${"baskets"}"))
 
     } catch (e: StatusRuntimeException) {
@@ -154,11 +151,9 @@ fun addElement(context: Context, client: SimpleClient, config: Config) {/* TODO 
         val id = list[0]
 
         //insert
-        val txId = client.begin()
         val query = Insert("${config.database.schemaName}.${"basket_elements"}").any("basketId", IntValue(id))
-            .any("mediaResourceId", StringValue(elementId)).txId(txId)
+            .any("mediaResourceId", StringValue(elementId))
         client.insert(query).close()
-        client.commit(txId)
         context.json(SuccessStatus("Successfully inserted $elementId into ${config.database.schemaName}.${"baskets"}.$basketName"))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
@@ -222,13 +217,10 @@ fun dropElement(context: Context, client: SimpleClient, config: Config) {/* TODO
         val id = list[0]
 
         //delete
-        val query = Delete("${config.database.schemaName}.${"basket_elements"}").where(
-            Compare(
-                "mediaResourceId",
-                "=",
-                elementId
-            ).also { Compare("basketId", "=", id) })
-        client.delete(query)
+        val query = Delete("${config.database.schemaName}.${"basket_elements"}").where(Compare(
+            "mediaResourceId", "=", elementId
+        ).also { Compare("basketId", "=", id) })
+        client.delete(query).close()
         context.json(SuccessStatus("Successfully deleted $elementId from ${config.database.schemaName}.${"baskets"}.$basketName"))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
@@ -288,9 +280,8 @@ fun listElements(context: Context, client: SimpleClient, config: Config) {/* TOD
         val id = listId[0]
 
         //insert
-        val txId = client.begin()
         val query = Query("${config.database.schemaName}.${"basket_elements"}").where(Compare("basketId", "=", id))
-            .select("mediaResourceId").txId(txId)
+            .select("mediaResourceId")
 
         val results = client.query(query)
 
