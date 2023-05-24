@@ -134,21 +134,7 @@ fun addElement(context: Context, client: SimpleClient, config: Config) {/* TODO 
     val elementId = context.pathParam("elementId")
     try {
         //get BasketId
-        val queryId = Query("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", basketName))
-            .select("basketId")
-
-        // execute query
-        val resultsId = client.query(queryId)
-
-        // save results as LinkedList
-
-        val list = LinkedList<Int>()
-        resultsId.forEach { t ->
-
-            list.add((t.asInt("basketId")!!))
-        }
-
-        val id = list[0]
+        val id = getBasketID(config, client, basketName)
 
         //insert
         val query = Insert("${config.database.schemaName}.${"basket_elements"}").any("basketId", IntValue(id))
@@ -200,21 +186,7 @@ fun dropElement(context: Context, client: SimpleClient, config: Config) {/* TODO
     val elementId = context.pathParam("elementId")
     try {
         //get BasketId
-        val queryId = Query("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", basketName))
-            .select("basketId")
-
-        // execute query
-        val resultsId = client.query(queryId)
-
-        // save results as LinkedList
-
-        val list = LinkedList<Int>()
-        resultsId.forEach { t ->
-
-            list.add((t.asInt("basketId")!!))
-        }
-
-        val id = list[0]
+        val id = getBasketID(config, client, basketName)
 
         //delete
         val query = Delete("${config.database.schemaName}.${"basket_elements"}").where(Compare(
@@ -263,21 +235,7 @@ fun listElements(context: Context, client: SimpleClient, config: Config) {/* TOD
     val basketName = context.pathParam("basketName")
     try {
         //get BasketId
-        val queryId = Query("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", basketName))
-            .select("basketId")
-
-        // execute query
-        val resultsId = client.query(queryId)
-
-        // save results as LinkedList
-
-        val listId = LinkedList<Int>()
-        resultsId.forEach { t ->
-
-            listId.add((t.asInt("basketId")!!))
-        }
-
-        val id = listId[0]
+        val id = getBasketID(config, client, basketName)
 
         //insert
         val query = Query("${config.database.schemaName}.${"basket_elements"}").where(Compare("basketId", "=", id))
@@ -382,4 +340,20 @@ fun listAll(context: Context, client: SimpleClient, config: Config) {/* TODO imp
     ]
 )
 fun listUser(context: Context, client: SimpleClient, config: Config) {/* TODO implement --> depends on authentication*/
+}
+
+
+fun getBasketID(config: Config, client: SimpleClient, basketName: String): Int {
+    val queryId =
+        Query("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", basketName)).select("basketId")
+
+    // execute query
+    val resultsId = client.query(queryId)
+
+    // save results as LinkedList
+    val listId = LinkedList<Int>()
+    resultsId.forEach { t ->
+        listId.add((t.asInt("basketId")!!))
+    }
+    return listId[0]
 }
