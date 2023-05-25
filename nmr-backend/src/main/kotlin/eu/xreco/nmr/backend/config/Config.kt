@@ -14,7 +14,8 @@ import java.nio.file.StandardOpenOption
  * @version 1.0.0
  */
 @Serializable
-data class Config(val api: APIConfig = APIConfig(), val database: DatabaseConfig = DatabaseConfig()) {
+data class Config(val api: APIConfig = APIConfig(), val database: DatabaseConfig = DatabaseConfig(), val mediaResourceConfig: MediaResourceConfig = MediaResourceConfig()
+) {
     companion object {
         fun read(path: Path): Config {
             Files.newInputStream(path, StandardOpenOption.READ).use {

@@ -3,6 +3,7 @@ package eu.xreco.nmr.backend.api
 import eu.xreco.nmr.backend.api.authentification.login
 import eu.xreco.nmr.backend.api.authentification.logout
 import eu.xreco.nmr.backend.api.basket.*
+import eu.xreco.nmr.backend.api.media.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.config.Config
 import io.javalin.Javalin
@@ -24,7 +25,7 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             ApiBuilder.get("logout/{username}") { logout(it) }
         }
         path("retrieval") {
-            ApiBuilder.get("{elementId}") { retrieve(it,  client, config) }
+            ApiBuilder.get("{elementId}") { retrieve(it, client, config) }
             ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
             ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { fullText(it, client, config) }
             ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it, client, config) }
@@ -41,6 +42,11 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
                 ApiBuilder.delete("{elementId}") { dropElement(it, client, config) }
             }
             ApiBuilder.get("list/{userId}") { listUser(it, client, config) }
+        }
+        path("media") {
+            ApiBuilder.get("thumbnail/{mediaResourceId}/{timeStamp}") { getThumbnail(it, client, config) }
+            ApiBuilder.get("video/{mediaResourceId}") { getVideo(it, client, config) }
+            ApiBuilder.get("representativeFrame/{mediaResourceId}/{timeStamp}") { getRepresentativeFrame(it, client, config) }
         }
     }
 }

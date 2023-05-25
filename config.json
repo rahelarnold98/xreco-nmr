@@ -6,5 +6,9 @@
     "host": "localhost",
     "port": 1865,
     "schemaName": "xreco"
+  },
+  "mediaResource": {
+    "thumbnails": "path/to/thumbnail",
+    "videos": "path/to/video"
   }
 }
