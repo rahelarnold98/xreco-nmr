@@ -35,6 +35,8 @@ dependencies {
     implementation group: 'io.grpc', name: 'grpc-kotlin-stub', version: version_grpc_kotlin
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: version_protobuf
 
+    /* Java CV. */
+    implementation group: 'org.bytedeco', name: 'javacv-platform', version: '1.5.8'
 
     /* Javalin */
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$version_kotlin"

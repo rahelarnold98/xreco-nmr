@@ -4,7 +4,6 @@ import eu.xreco.nmr.backend.model.database.Entity
 import eu.xreco.nmr.backend.model.database.basket.Basket
 import eu.xreco.nmr.backend.model.database.basket.BasketElement
 import eu.xreco.nmr.backend.model.database.core.MediaResource
-import eu.xreco.nmr.backend.model.database.core.Segmentation
 import eu.xreco.nmr.backend.model.database.features.ClipFeature
 import eu.xreco.nmr.backend.model.database.features.LandmarkFeature
 
@@ -13,5 +12,5 @@ import eu.xreco.nmr.backend.model.database.features.LandmarkFeature
  */
 object Constants {
     /** List of entities that are used by the XRECO backend. */
-    val ENTITIES = arrayOf<Entity>(MediaResource, Segmentation, LandmarkFeature, Basket, BasketElement, ClipFeature)
+    val ENTITIES = arrayOf<Entity>(MediaResource, LandmarkFeature, Basket, BasketElement, ClipFeature)
 }

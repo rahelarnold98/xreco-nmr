@@ -44,7 +44,7 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             ApiBuilder.get("list/{userId}") { listUser(it, client, config) }
         }
         path("media") {
-            ApiBuilder.get("thumbnail/{mediaResourceId}/{timeStamp}") { getThumbnail(it, client, config) }
+            ApiBuilder.get("thumbnail/{mediaResourceId}/{timestamp}") { getThumbnail(it, client, config) }
             ApiBuilder.get("video/{mediaResourceId}") { getVideo(it, client, config) }
             ApiBuilder.get("representativeFrame/{mediaResourceId}/{timeStamp}") { getRepresentativeFrame(it, client, config) }
         }

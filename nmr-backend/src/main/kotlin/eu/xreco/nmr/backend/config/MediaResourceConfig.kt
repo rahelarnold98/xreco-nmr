@@ -9,4 +9,8 @@ import kotlinx.serialization.Serializable
  * @version 1.0.0
  */
 @Serializable
-data class MediaResourceConfig(val thumbnails: String = "../thumbnails", val videos: String  = "../videos")
+data class MediaResourceConfig(
+    val thumbnails: String = "../thumbnails",
+    val resources: String  = "../videos",
+    val thumbnailSize: Int = 500
+)

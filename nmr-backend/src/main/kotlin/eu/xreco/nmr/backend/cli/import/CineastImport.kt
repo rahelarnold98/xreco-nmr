@@ -9,7 +9,6 @@ import eu.xreco.nmr.backend.model.cineast.MediaObject
 import eu.xreco.nmr.backend.model.cineast.MediaSegment
 import eu.xreco.nmr.backend.model.cineast.VectorFeature
 import eu.xreco.nmr.backend.model.database.core.MediaResource
-import eu.xreco.nmr.backend.model.database.core.Segmentation
 import eu.xreco.nmr.backend.model.database.features.ClipFeature
 import eu.xreco.nmr.backend.model.database.features.LandmarkFeature
 import kotlinx.serialization.json.DecodeSequenceMode
@@ -49,18 +48,11 @@ class CineastImport(private val client: SimpleClient, private val schema: String
             return
         }
 
-        /* import segements */
-        if (!this.importSegments(this.input.resolve(FILENAME_CINEAST_SEGMENT))) {
-            return
-        }
-
         /* Generates a segment mapping. */
         val segmentMap = this.createSegmentMapping(this.input.resolve(FILENAME_CINEAST_SEGMENT))
         if (segmentMap.isEmpty()) {
             return
         }
-
-
 
         /* Start feature import. */
         this.loadLegacyLandmarks(this.input.resolve(FILENAME_FEATURE_LANDMARK), segmentMap)
@@ -253,63 +245,6 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         }
         return success
     }
-
-
-    private fun importSegments(path: Path): Boolean {
-        if (!Files.exists(path)) {
-            System.err.println("Import of media objects failed. File $path does not seem to exist.")
-            return false
-        }
-
-        var counter = 0
-        var success = true
-        val txId = this.client.begin()
-        try {
-            Files.newInputStream(path).use {
-                val insert = BatchInsert("$schema.${Segmentation.name}").columns(
-                    "mediaResourceId", "segment", "start", "end", "rep"
-                ).txId(txId)
-                for (o in Json.decodeToSequence<MediaSegment>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
-                    if (!insert.values(
-                            StringValue(o.objectid),
-                            IntValue(o.segmentnumber),
-                            FloatValue(o.segmentstartabs),
-                            FloatValue(o.segmentendabs),
-                            FloatValue(o.segmentrepresentativeabs)
-                        )
-                    ) {
-                        this.client.insert(insert).close()
-                        insert.clear()
-                        insert.values(
-                            StringValue(o.objectid),
-                            IntValue(o.segmentnumber),
-                            FloatValue(o.segmentstartabs),
-                            FloatValue(o.segmentendabs),
-                            FloatValue(o.segmentrepresentativeabs)
-                        )
-                    }
-                    counter += 1
-                }
-                if (insert.count() > 0) {
-                    this.client.insert(insert).close()
-                }
-            }
-        } catch (e: Throwable) {
-            System.err.println("An error occurred while importing segments: ${e.message}")
-            success = false
-        }
-
-        if (success) {
-            this.client.commit(txId)
-            println("Successfully imported $counter segments.")
-        } else {
-            this.client.rollback(txId)
-            println("An error occurred while importing segments.")
-        }
-        return success
-    }
-
-
 
     /**
      * Loads cineast_segment.json and creates a segment mapping for future reference.
