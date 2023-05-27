@@ -14,6 +14,7 @@ import io.javalin.openapi.*
 import org.vitrivr.cottontail.client.SimpleClient
 import org.vitrivr.cottontail.client.language.basics.Direction
 import org.vitrivr.cottontail.client.language.basics.Distances
+import org.vitrivr.cottontail.client.language.basics.predicate.And
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dql.Query
 import org.vitrivr.cottontail.core.values.FloatVectorValue
@@ -21,6 +22,7 @@ import java.util.*
 import kotlin.FloatArray
 import kotlin.Int
 import kotlin.String
+
 @OpenApi(
     summary = "Get entity of given element",
     path = "/api/retrieval/lookup/{elementId}/{entity}",
@@ -128,7 +130,7 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
 }
 
 @OpenApi(
-    summary = "Create a fulltext query.",
+    summary = "Issues a fulltext query.",
     path = "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}",
     tags = [Retrieval],
     operationId = "getFullTextQuery",
@@ -147,7 +149,7 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
     ]
 )
 
-fun fullText(context: Context, client: SimpleClient, config: Config) {
+fun getFulltext(context: Context, client: SimpleClient, config: Config) {
     val text = context.pathParam("text")
     val entity = context.pathParam("entity")
     val pageSize = context.pathParam("pageSize").toInt()
@@ -169,6 +171,7 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {
             .select("end")
             .order("score", Direction.DESC)
             .limit(pageSize.toLong()).skip(page * pageSize.toLong())
+
         client.query(query).forEach { t ->
             list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asLong("start")!!, t.asLong("end")!!))
         }
@@ -177,123 +180,88 @@ fun fullText(context: Context, client: SimpleClient, config: Config) {
         context.json(RetrievalResult(page, pageSize, count, list))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}.${entity}' could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested element '${config.database.schemaName}.${entity}' could not be found."
-            )
-
+            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            else -> throw ErrorStatusException(400, e.message ?: "Unknown error")
         }
     }
 }
 
 @OpenApi(
-    summary = "Create a similarity query based on a given element id",
-    path = "/api/retrieval/similarity/{elementId}/{pageSize}/{page}",
+    summary = "Issues a similarity query based on a provided media resource id.",
+    path = "/api/retrieval/similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}",
     tags = [Retrieval],
-    operationId = "getSimilarityQuery",
+    operationId = "getSimilar",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(
-            name = "elementId",
-            type = String::class,
-            description = "Id of element to get most similar of",
-            required = true
-        ),
+        OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
+        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to get most similar entries for.", required = true),
         OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
         OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
     responses = [
-        OpenApiResponse("200", [OpenApiContent(ScoredMediaItem::class)]),
+        OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun similarity(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-
-    //TODO why not always same results???
-    val elementId = context.pathParam("elementId")
+fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
+    /* Extract path parameters. */
+    val mediaResourceId = context.pathParam("mediaResourceId")
+    val entity = context.pathParam("entity")
+    val timestamp = (context.pathParam("timestamp").toLongOrNull() ?: 0L) * 1000L
     val pageSize = context.pathParam("pageSize").toInt()
     val page = context.pathParam("page").toInt()
 
-    val similarityFeature = "features_clip"
-    // TODO get segment based on time !
-
+    /* Handle similarity (more-like-this) query. */
     try {
-        val queryVec = Query("${config.database.schemaName}.${similarityFeature}").where(
-            Compare(
-                "mediaResourceId", "=", elementId
+        /* Extract query vector. */
+        val exampleQuery = Query("${config.database.schemaName}.${entity}").where(
+            And(
+                Compare("mediaResourceId", "=", mediaResourceId),
+                And(
+                    Compare("start", ">=", timestamp),
+                    Compare("end", "<=", timestamp)
+                )
             )
         ).select("feature")
-
-        // execute query
-        //
-        val resultsVec = client.query(queryVec)
-
-        // save results as LinkedList
-        //
-        //val resQVec = LinkedList<Float>()
-        //
-        val resQVec = LinkedList<FloatArray>()
-        //
-        resultsVec.forEach { t ->
-            resQVec.add(t.asFloatVector("feature")!!)
-        }
-        // TODO change after using time
-        val floatArray = resQVec.get(0)
-
-
-        var query = Query("${config.database.schemaName}.${similarityFeature}").distance(
-            "feature", FloatVectorValue(floatArray), Distances.COSINE, "score"
-        ).select("mediaResourceId")
-        // TODO  include score
-
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        val list = LinkedList<String>()
-        var iterator = 0
-
-        results.forEach { t ->
-            // verify if result is on desired page
-            if ((page - 1) * pageSize <= iterator && iterator <= page * pageSize) {
-                // TODO add score here
-                list.add(t.asString("mediaResourceId")!!)
+        val vector: FloatArray = client.query(exampleQuery).use { result ->
+            if (result.hasNext()) {
+                result.next().asFloatVector("feature")!!
+            } else {
+                throw ErrorStatusException(404, "Could not find feature '${entity}' for media resource ${mediaResourceId}.")
             }
-            iterator++
         }
+
+        /* Determine how many entries can be found by the query. */
+        val countQuery = Query("${config.database.schemaName}.$entity").count()
+        val count = client.query(countQuery).use {
+            it.next().asLong(0)!!
+        }
+
+        /* Issue similarity search. */
+        val list = ArrayList<ScoredMediaItem>(pageSize)
+        val query = Query("${config.database.schemaName}.${entity}").distance(
+            "feature", FloatVectorValue(vector), Distances.EUCLIDEAN, "score"
+        ).select("mediaResourceId")
+        .select("start")
+        .select("end")
+        .order("score", Direction.DESC)
+        .limit(pageSize.toLong()).skip(page * pageSize.toLong())
+
+        client.query(query).forEach { t ->
+            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asLong("start")!!, t.asLong("end")!!))
+        }
+
+        /* Send results. */
+        context.json(RetrievalResult(page, pageSize, count, list))
         context.json(list)
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                //TODO Fill
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}'.feature  could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                //TODO Fill
-                404, "The requested element '${config.database.schemaName}'.FEATURE could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
+            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Database is currently not available.")
+            else -> ErrorStatusException(400, e.message ?: "Unknown error")
         }
     }
 }
