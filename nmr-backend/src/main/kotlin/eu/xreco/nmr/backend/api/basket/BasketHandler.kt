@@ -2,8 +2,8 @@ package eu.xreco.nmr.backend.api.basket
 
 import eu.xreco.nmr.backend.api.Basket
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.api.basket.Basket
 import eu.xreco.nmr.backend.model.api.basket.BasketList
+import eu.xreco.nmr.backend.model.api.basket.BasketPreview
 import eu.xreco.nmr.backend.model.api.retrieval.Text
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
@@ -14,11 +14,11 @@ import io.grpc.StatusRuntimeException
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import org.vitrivr.cottontail.client.SimpleClient
+import org.vitrivr.cottontail.client.language.basics.predicate.And
 import org.vitrivr.cottontail.client.language.basics.predicate.Compare
 import org.vitrivr.cottontail.client.language.dml.Delete
 import org.vitrivr.cottontail.client.language.dml.Insert
 import org.vitrivr.cottontail.client.language.dql.Query
-import org.vitrivr.cottontail.core.values.IntValue
 import org.vitrivr.cottontail.core.values.StringValue
 import java.util.*
 
@@ -68,60 +68,46 @@ fun createBasket(context: Context, client: SimpleClient, config: Config) {
 
 @OpenApi(
     summary = "Deletes a specific basket.",
-    path = "/api/basket/{basketName}",
+    path = "/api/basket/{basketId}",
     tags = [Basket],
     operationId = "deleteBasket",
     methods = [HttpMethod.DELETE],
     pathParams = [
-        OpenApiParam(name = "basketName", type = String::class, "Name of basket which gets deleted", required = true),
+        OpenApiParam(name = "basketId", type = Int::class, "ID of basket that should be deleted.", required = true),
     ],
     responses = [
-        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]), // or just success?
+        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
-        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)])
     ]
 )
-fun dropBasket(context: Context, client: SimpleClient, config: Config) {
-    val name = context.pathParam("basketName")
+fun deleteBasket(context: Context, client: SimpleClient, config: Config) {
+    val basketId = context.pathParam("basketId").toIntOrNull() ?: throw ErrorStatusException(400, "Valid basket ID required.")
+    val txId = client.begin(false)
     try {
-
-        val delete = Delete("${config.database.schemaName}.${"baskets"}").where(Compare("name", "=", name))
-        client.delete(delete).close()
-        context.json(SuccessStatus("Successfully deleted $name from ${config.database.schemaName}.${"baskets"}"))
-
+        client.delete(Delete("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.basket.Basket.name}").where(Compare("basketId", "=", basketId)).txId(txId)).close()
+        client.delete(Delete("${config.database.schemaName}.${BasketElement.name}").where(Compare("basketId", "=", basketId)).txId(txId)).close()
+        client.commit(txId)
+        context.json(SuccessStatus("Successfully deleted basked $basketId."))
     } catch (e: StatusRuntimeException) {
+        client.rollback(txId)
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested table '${config.database.schemaName}.${"basket"} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested table '${config.database.schemaName}.${"basket"} could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Database connection is currently not available.")
+            else -> throw ErrorStatusException(500, e.message ?: "Unknown error")
         }
     }
 }
 
 @OpenApi(
     summary = "Adds a specific element to a specific basket.",
-    path = "/api/basket/{basketName}/{elementId}",
+    path = "/api/basket/{basketId}/{mediaResourceId}",
     tags = [Basket],
     operationId = "putToBasket",
     methods = [HttpMethod.PUT],
     pathParams = [
-        OpenApiParam(name = "basketName", type = String::class, description = "Name of basket", required = true),
-        OpenApiParam(
-            name = "elementId", type = String::class, description = "Id of element that will be added", required = true
-        ),
+        OpenApiParam(name = "basketId", type = String::class, description = "ID of the basket to add element to.", required = true),
+        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to add.", required = true)
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -130,50 +116,34 @@ fun dropBasket(context: Context, client: SimpleClient, config: Config) {
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun addElement(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    val basketName = context.pathParam("basketName")
-    val elementId = context.pathParam("elementId")
+fun addBasketElement(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
+    val basketId = context.pathParam("basketId").toIntOrNull() ?: throw ErrorStatusException(400, "Valid basket ID required.")
+    val mediaResourceId = context.pathParam("mediaResourceId")
     try {
-        //get BasketId
-        val id = getBasketID(config, client, basketName)
-
-        //insert
-        val query = Insert("${config.database.schemaName}.${"basket_elements"}").any("basketId", IntValue(id))
-            .any("mediaResourceId", StringValue(elementId))
-        client.insert(query).close()
-        context.json(SuccessStatus("Successfully inserted $elementId into ${config.database.schemaName}.${"baskets"}.$basketName"))
+        val query = Insert("${config.database.schemaName}.${BasketElement.name}").any("basketId", basketId).any("mediaResourceId", mediaResourceId)
+        val inserted = client.insert(query).next().asLong(0)!!
+        if (inserted > 0L) {
+            context.json(SuccessStatus("Successfully inserted media resource $mediaResourceId into basket $basketId."))
+        } else {
+            context.json(SuccessStatus("Did not insert media resource  $mediaResourceId into basket $basketId."))
+        }
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-            )
-
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            else -> throw ErrorStatusException(400, e.message ?: "Unknown error!")
         }
     }
 }
 
 @OpenApi(
     summary = "Drops a specific element of a specific basket.",
-    path = "/api/basketName/{basketName}/{elementId}",
+    path = "/api/basketName/{basketId}/{mediaResourceId}",
     tags = [Basket],
     operationId = "deleteFromBasket",
     methods = [HttpMethod.DELETE],
     pathParams = [
-        OpenApiParam(name = "basketName", type = String::class, description = "Name of basket", required = true),
-        OpenApiParam(
-            name = "elementId", type = String::class, description = "Id of element that will be added", required = true
-        ),
+        OpenApiParam(name = "basketId", type = String::class, description = "ID of the basket to remove element from.", required = true),
+        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource that will be added.", required = true)
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(BasketElement::class)]),
@@ -182,36 +152,23 @@ fun addElement(context: Context, client: SimpleClient, config: Config) {/* TODO 
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun dropElement(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    val basketName = context.pathParam("basketName")
-    val elementId = context.pathParam("elementId")
+fun dropBasketElement(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
+    val basketId = context.pathParam("basketId").toIntOrNull() ?: throw ErrorStatusException(400, "Valid basket ID required.")
+    val mediaResourceId = context.pathParam("mediaResourceId")
     try {
-        //get BasketId
-        val id = getBasketID(config, client, basketName)
-
-        //delete
-        val query = Delete("${config.database.schemaName}.${"basket_elements"}").where(Compare(
-            "mediaResourceId", "=", elementId
-        ).also { Compare("basketId", "=", id) })
-        client.delete(query).close()
-        context.json(SuccessStatus("Successfully deleted $elementId from ${config.database.schemaName}.${"baskets"}.$basketName"))
+        val query = Delete("${config.database.schemaName}.${"basket_elements"}").where(
+            And(Compare("mediaResourceId", "=", mediaResourceId), Compare("basketId", "=", basketId))
+        )
+        val affected = client.delete(query).next().asLong(0)!!
+        if (affected >= 0L) {
+            context.json(SuccessStatus("Successfully deleted $mediaResourceId from basket $basketId."))
+        } else {
+            context.json(SuccessStatus("No element removed from basket $basketId."))
+        }
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-            )
-
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            else -> throw ErrorStatusException(400, e.message ?: "Unknown error.")
         }
     }
 }
@@ -273,7 +230,7 @@ fun listElements(context: Context, client: SimpleClient, config: Config) {/* TOD
 }
 
 @OpenApi(
-    summary = "List all existing baskets",
+    summary = "List all existing baskets.",
     path = "/api/basket/list/all",
     tags = [Basket],
     operationId = "getAllBaskets",
@@ -288,13 +245,20 @@ fun listElements(context: Context, client: SimpleClient, config: Config) {/* TOD
     )
 fun listAll(context: Context, client: SimpleClient, config: Config) {
     try {
-        val query = Query("${config.database.schemaName}.${"baskets"}").select("name")
-        val results = client.query(query)
-        val list = LinkedList<Basket>()
-        results.forEach { t ->
-            list.add(Basket(t.asString("name")!!, emptyList()))
+        val list = LinkedList<Pair<Int,String>>()
+        client.query(Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.basket.Basket.name}")).forEach { t ->
+            list.add(t.asInt("basketId")!! to t.asString("name")!!)
         }
-        context.json(BasketList(list))
+
+        val counts = list.map {
+            client.query(
+                Query("${config.database.schemaName}.${BasketElement.name}")
+                .where(Compare("basketId", "=", it.first))
+                .count()
+            ).next().asLong(0)!!
+        }
+
+        context.json(BasketList(list.zip(counts).map { BasketPreview(it.first.first, it.first.second, it.second.toInt()) }))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
             Status.Code.INTERNAL -> throw ErrorStatusException(400, "The requested entity '${config.database.schemaName}.${"baskets"} could not be found.")

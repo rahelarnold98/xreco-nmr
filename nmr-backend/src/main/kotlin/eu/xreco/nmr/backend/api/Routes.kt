@@ -31,13 +31,13 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
         }
         path("basket") {
             ApiBuilder.post("{basketName}") { createBasket(it, client, config) }
-            ApiBuilder.delete("{basketName}") { dropBasket(it, client, config) }
-            ApiBuilder.get("{basketName}") { listElements(it, client, config) }
+            ApiBuilder.delete("{basketId}") { deleteBasket(it, client, config) }
+            ApiBuilder.get("{basketId}") { listElements(it, client, config) }
             ApiBuilder.get("list/all") { listAll(it, client, config) }
 
-            path("{basketName}") {
-                ApiBuilder.put("{elementId}") { addElement(it, client, config) }
-                ApiBuilder.delete("{elementId}") { dropElement(it, client, config) }
+            path("{basketId}") {
+                ApiBuilder.put("{mediaResourceId}") { addBasketElement(it, client, config) }
+                ApiBuilder.delete("{mediaResourceId}") { dropBasketElement(it, client, config) }
             }
             ApiBuilder.get("list/{userId}") { listUser(it, client, config) }
         }

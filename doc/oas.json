@@ -147,7 +147,7 @@
     "/api/basket/list/all" : {
       "get" : {
         "tags" : [ "Basket" ],
-        "summary" : "List all existing baskets",
+        "summary" : "List all existing baskets.",
         "operationId" : "getAllBaskets",
         "parameters" : [ ],
         "responses" : {
@@ -258,15 +258,88 @@
         "security" : [ ]
       }
     },
-    "/api/basket/{basketName}" : {
-      "post" : {
+    "/api/basket/{basketId}" : {
+      "delete" : {
         "tags" : [ "Basket" ],
-        "summary" : "Creates a new basket.",
-        "operationId" : "postBasket",
+        "summary" : "Deletes a specific basket.",
+        "operationId" : "deleteBasket",
         "parameters" : [ {
-          "name" : "basketName",
+          "name" : "basketId",
           "in" : "path",
-          "description" : "Name of basket which gets deleted",
+          "description" : "ID of basket that should be deleted.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/basket/{basketId}/{mediaResourceId}" : {
+      "put" : {
+        "tags" : [ "Basket" ],
+        "summary" : "Adds a specific element to a specific basket.",
+        "operationId" : "putToBasket",
+        "parameters" : [ {
+          "name" : "basketId",
+          "in" : "path",
+          "description" : "ID of the basket to add element to.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "mediaResourceId",
+          "in" : "path",
+          "description" : "ID of the media resource to add.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -318,11 +391,13 @@
         },
         "deprecated" : false,
         "security" : [ ]
-      },
-      "delete" : {
+      }
+    },
+    "/api/basket/{basketName}" : {
+      "post" : {
         "tags" : [ "Basket" ],
-        "summary" : "Deletes a specific basket.",
-        "operationId" : "deleteBasket",
+        "summary" : "Creates a new basket.",
+        "operationId" : "postBasket",
         "parameters" : [ {
           "name" : "basketName",
           "in" : "path",
@@ -440,87 +515,15 @@
         "security" : [ ]
       }
     },
-    "/api/basket/{basketName}/{elementId}" : {
-      "put" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Adds a specific element to a specific basket.",
-        "operationId" : "putToBasket",
-        "parameters" : [ {
-          "name" : "basketName",
-          "in" : "path",
-          "description" : "Name of basket",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "elementId",
-          "in" : "path",
-          "description" : "Id of element that will be added",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basketName/{basketName}/{elementId}" : {
+    "/api/basketName/{basketId}/{mediaResourceId}" : {
       "delete" : {
         "tags" : [ "Basket" ],
         "summary" : "Drops a specific element of a specific basket.",
         "operationId" : "deleteFromBasket",
         "parameters" : [ {
-          "name" : "basketName",
+          "name" : "basketId",
           "in" : "path",
-          "description" : "Name of basket",
+          "description" : "ID of the basket to remove element from.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -528,9 +531,9 @@
             "type" : "string"
           }
         }, {
-          "name" : "elementId",
+          "name" : "mediaResourceId",
           "in" : "path",
-          "description" : "Id of element that will be added",
+          "description" : "ID of the media resource that will be added.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1129,22 +1132,6 @@
   },
   "components" : {
     "schemas" : {
-      "Basket" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "elements" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        },
-        "required" : [ "name", "elements" ]
-      },
       "BasketList" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -1152,11 +1139,29 @@
           "baskets" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/Basket"
+              "$ref" : "#/components/schemas/BasketPreview"
             }
           }
         },
         "required" : [ "baskets" ]
+      },
+      "BasketPreview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "basketId" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "basketId", "name", "size" ]
       },
       "MediaResource" : {
         "type" : "object",
