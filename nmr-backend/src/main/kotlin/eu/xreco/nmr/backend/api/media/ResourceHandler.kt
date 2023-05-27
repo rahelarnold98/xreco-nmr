@@ -116,13 +116,13 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
 
 @OpenApi(
     summary = "Generates and returns a preview of a media resource.",
-    path = "/api/resource/{mediaResourceId}/preview/{timestamp}",
+    path = "/api/resource/{mediaResourceId}/preview/{frame}",
     tags = [Resource],
     operationId = "getPreviewForMediaResource",
     methods = [HttpMethod.GET],
     pathParams = [
         OpenApiParam(name = "mediaResourceId", type = String::class, "ID of the media resource to create preview for.", required = true),
-        OpenApiParam(name = "timestamp", type = Long::class, "Timestamp of required preview in seconds (video only).", required = false),
+        OpenApiParam(name = "frame", type = Long::class, "Frame (number) of the requested preview (video only).", required = false),
     ],
     responses = [
         OpenApiResponse("200"),
@@ -133,10 +133,10 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
 )
 fun getPreview(context: Context, client: SimpleClient, config: Config) {
     val mediaResourceId = context.pathParam("mediaResourceId")
-    val timestamp = context.pathParam("timestamp").toLongOrNull() ?: 0L
+    val frame = context.pathParam("frame").toIntOrNull() ?: 0
 
     /* If thumbnail does not exist exists in cache, generate it using JavaCV. */
-    val cachePath = Paths.get(config.media.thumbnails, "${mediaResourceId}_$timestamp.jpg")
+    val cachePath = Paths.get(config.media.thumbnails, "${mediaResourceId}_$frame.jpg")
     if (!Files.exists(cachePath)) {
         /* Find media resource entry. */
         val query = Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(Compare("mediaResourceId", "=", mediaResourceId))
@@ -161,9 +161,9 @@ fun getPreview(context: Context, client: SimpleClient, config: Config) {
         /* Extract image and store it. */
         try {
             val thumbnail = when(type) {
-                MediaType.VIDEO -> ThumbnailCreator.thumbnailFromVideo(videoPath, timestamp * 1000L, config.media.thumbnailSize)
+                MediaType.VIDEO -> ThumbnailCreator.thumbnailFromVideo(videoPath, frame, config.media.thumbnailSize)
                 MediaType.IMAGES -> ThumbnailCreator.thumbnailFromImage(videoPath, config.media.thumbnailSize)
-                else -> throw ErrorStatusException(400, "Generation of thumbnails is currently not supported for media type $type.")
+                else -> throw ErrorStatusException(400, "Generation of thumbnails is1 currently not supported for media type $type.")
             }
             Files.newOutputStream(cachePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { output ->
                 ImageIO.write(thumbnail, "jpg", output)

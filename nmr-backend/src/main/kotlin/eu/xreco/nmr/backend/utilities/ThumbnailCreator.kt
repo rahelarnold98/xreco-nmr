@@ -1,6 +1,5 @@
 package eu.xreco.nmr.backend.utilities
 
-import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.Image
@@ -37,14 +36,14 @@ object ThumbnailCreator {
      * Extracts and returns a thumbnail from the provided video.
      *
      * @param path [Path] to the video file to extract thumbnail from.
-     * @param timestamp The timestamp within the video to generate thumbnail for.
+     * @param frameNumber The frame number within the video to generate thumbnail for.
      * @param maximumSize The maximum size of the thumbnail (i.e., the maximum bounding box).
      * @return [BufferedImage]
      */
-    fun thumbnailFromVideo(path: Path, timestamp: Long, maximumSize: Int): BufferedImage? = Files.newInputStream(path, StandardOpenOption.READ).use { input ->
+    fun thumbnailFromVideo(path: Path, frameNumber: Int, maximumSize: Int): BufferedImage? = Files.newInputStream(path, StandardOpenOption.READ).use { input ->
         val grabber = FFmpegFrameGrabber(input)
         grabber.start()
-        grabber.setVideoTimestamp(timestamp)
+        grabber.setVideoFrameNumber(frameNumber)
         val frame = grabber.grabKeyFrame() ?: return null
         val image = converter.getBufferedImage(frame) ?: return null
         grabber.stop()

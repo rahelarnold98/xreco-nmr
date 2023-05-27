@@ -701,7 +701,7 @@
         "security" : [ ]
       }
     },
-    "/api/resource/{mediaResourceId}/preview/{timestamp}" : {
+    "/api/resource/{mediaResourceId}/preview/{frame}" : {
       "get" : {
         "tags" : [ "Resource" ],
         "summary" : "Generates and returns a preview of a media resource.",
@@ -717,9 +717,9 @@
             "type" : "string"
           }
         }, {
-          "name" : "timestamp",
+          "name" : "frame",
           "in" : "path",
-          "description" : "Timestamp of required preview in seconds (video only).",
+          "description" : "Frame (number) of the requested preview (video only).",
           "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
