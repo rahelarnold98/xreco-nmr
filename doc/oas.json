@@ -334,7 +334,8 @@
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
-            "type" : "string"
+            "type" : "integer",
+            "format" : "int32"
           }
         }, {
           "name" : "mediaResourceId",
@@ -401,7 +402,7 @@
         "parameters" : [ {
           "name" : "basketName",
           "in" : "path",
-          "description" : "Name of basket which gets deleted",
+          "description" : "Name of basket that should be created.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,

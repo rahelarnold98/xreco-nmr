@@ -29,39 +29,25 @@ import java.util.*
     operationId = "postBasket",
     methods = [HttpMethod.POST],
     pathParams = [
-        OpenApiParam(name = "basketName", type = String::class, "Name of basket which gets deleted", required = true),
+        OpenApiParam(name = "basketName", type = String::class, "Name of basket that should be created.", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
-    ]/* TODO add RequestBody*/
+    ]
 )
 fun createBasket(context: Context, client: SimpleClient, config: Config) {
     val name = context.pathParam("basketName")
     try {
         val query = Insert("${config.database.schemaName}.${"baskets"}").value("name", StringValue(name))
-        client.insert(query).close()
-        context.json(SuccessStatus("Successfully inserted $name into ${config.database.schemaName}.${"baskets"}"))
-
+        val baskedId = client.insert(query).next().asLong(2)
+        context.json(SuccessStatus("Successfully created basked $baskedId."))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested table '${config.database.schemaName}.${"baskets"} could not be found."
-            )
-
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            else -> throw ErrorStatusException(500, e.message ?: "Unknown error'")
         }
     }
 }
@@ -106,7 +92,7 @@ fun deleteBasket(context: Context, client: SimpleClient, config: Config) {
     operationId = "putToBasket",
     methods = [HttpMethod.PUT],
     pathParams = [
-        OpenApiParam(name = "basketId", type = String::class, description = "ID of the basket to add element to.", required = true),
+        OpenApiParam(name = "basketId", type = Int::class, description = "ID of the basket to add element to.", required = true),
         OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to add.", required = true)
     ],
     responses = [
