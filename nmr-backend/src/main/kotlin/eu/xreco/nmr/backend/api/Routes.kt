@@ -9,7 +9,6 @@ import eu.xreco.nmr.backend.config.Config
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.http.Header
 import org.vitrivr.cottontail.client.SimpleClient
 
 /**
@@ -25,7 +24,6 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             ApiBuilder.get("logout/{username}") { logout(it) }
         }
         path("retrieval") {
-            ApiBuilder.get("{elementId}") { retrieve(it, client, config) }
             ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
             ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { fullText(it, client, config) }
             ApiBuilder.get("similarity/{elementId}/{pageSize}/{page}") { similarity(it, client, config) }
@@ -43,10 +41,10 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
             }
             ApiBuilder.get("list/{userId}") { listUser(it, client, config) }
         }
-        path("media") {
-            ApiBuilder.get("thumbnail/{mediaResourceId}/{timestamp}") { getThumbnail(it, client, config) }
-            ApiBuilder.get("video/{mediaResourceId}") { getVideo(it, client, config) }
-            ApiBuilder.get("representativeFrame/{mediaResourceId}/{timeStamp}") { getRepresentativeFrame(it, client, config) }
+        path("resource") {
+            ApiBuilder.get("{mediaResourceId}") { getResource(it, client, config) }
+            ApiBuilder.get("{mediaResourceId}/metadata") { getResource(it, client, config) }
+            ApiBuilder.get("{mediaResourceId}/preview/{timestamp}") { getMetadata(it, client, config) }
         }
     }
 }

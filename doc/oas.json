@@ -584,31 +584,75 @@
         "security" : [ ]
       }
     },
-    "/api/media/representativeFrame/{mediaResourceId}{timeStamp}" : {
+    "/api/resource/{mediaResourceId}" : {
       "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Get a representative frame of a media item based in a given timestamp",
-        "operationId" : "postBasket",
+        "tags" : [ "Resource" ],
+        "summary" : "Gets the media resource provided by the given ID.",
+        "operationId" : "getMediaResource",
         "parameters" : [ {
           "name" : "mediaResourceId",
           "in" : "path",
-          "description" : "Id of media",
+          "description" : "ID of the media resource to access.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
-        }, {
-          "name" : "timeStamp",
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/resource/{mediaResourceId}/metadata" : {
+      "get" : {
+        "tags" : [ "Resource" ],
+        "summary" : "Gets the media resource provided by the given ID.",
+        "operationId" : "getMediaResourceMetadata",
+        "parameters" : [ {
+          "name" : "mediaResourceId",
           "in" : "path",
-          "description" : "Timestamp of required preview",
+          "description" : "ID of the media resource to access metadata for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
-            "type" : "number",
-            "format" : "float"
+            "type" : "string"
           }
         } ],
         "responses" : {
@@ -617,8 +661,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "number",
-                  "format" : "float"
+                  "$ref" : "#/components/schemas/MediaResource"
                 }
               }
             }
@@ -658,15 +701,15 @@
         "security" : [ ]
       }
     },
-    "/api/media/thumbnail/{mediaResourceId}/{timeStamp}" : {
+    "/api/resource/{mediaResourceId}/preview/{timestamp}" : {
       "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Get a preview of a media item based in a given timestamp",
-        "operationId" : "postBasket",
+        "tags" : [ "Resource" ],
+        "summary" : "Generates and returns a preview of a media resource.",
+        "operationId" : "getPreviewForMediaResource",
         "parameters" : [ {
           "name" : "mediaResourceId",
           "in" : "path",
-          "description" : "Id of media",
+          "description" : "ID of the media resource to create preview for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -674,89 +717,20 @@
             "type" : "string"
           }
         }, {
-          "name" : "timeStamp",
+          "name" : "timestamp",
           "in" : "path",
-          "description" : "Timestamp of required preview",
-          "required" : true,
+          "description" : "Timestamp of required preview in seconds (video only).",
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
-            "type" : "number",
-            "format" : "float"
+            "type" : "integer",
+            "format" : "int64"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/media/video/{mediaResourceId}" : {
-      "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Get a path to video",
-        "operationId" : "postBasket",
-        "parameters" : [ {
-          "name" : "mediaResourceId",
-          "in" : "path",
-          "description" : "Id of media",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
+            "description" : "OK"
           },
           "404" : {
             "description" : "Not Found",
@@ -1130,88 +1104,25 @@
         "deprecated" : false,
         "security" : [ ]
       }
-    },
-    "/api/retrieval/{elementId}" : {
-      "get" : {
-        "tags" : [ "Retrieval" ],
-        "summary" : "Get attributes of given element",
-        "operationId" : "getAttributesOfElement",
-        "parameters" : [ {
-          "name" : "elementId",
-          "in" : "path",
-          "description" : "Id of element which attributes will be returned",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/MediaItem"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
     }
   },
   "components" : {
     "schemas" : {
-      "BasketElement" : {
+      "Basket" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "basketId" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "mediaResourceId" : {
+          "name" : {
             "type" : "string"
           },
-          "entity" : {
-            "$ref" : "#/components/schemas/Entity"
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         },
-        "required" : [ "basketId", "mediaResourceId", "entity" ]
+        "required" : [ "name", "elements" ]
       },
       "BasketList" : {
         "type" : "object",
@@ -1220,25 +1131,24 @@
           "baskets" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/BasketElement"
+              "$ref" : "#/components/schemas/Basket"
             }
           }
         },
         "required" : [ "baskets" ]
       },
-      "MediaItem" : {
+      "MediaResource" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
           "mediaResourceId" : {
             "type" : "string"
           },
+          "type" : {
+            "$ref" : "#/components/schemas/MediaType"
+          },
           "title" : {
             "type" : "string"
-          },
-          "type" : {
-            "type" : "integer",
-            "format" : "int32"
           },
           "description" : {
             "type" : "string"
@@ -1249,7 +1159,8 @@
           "path" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "type" ]
       },
       "RetrievalResult" : {
         "type" : "object",
@@ -1332,6 +1243,10 @@
         },
         "required" : [ "description" ]
       },
+      "MediaType" : {
+        "type" : "string",
+        "enum" : [ "VIDEO", "IMAGES", "AUDIO" ]
+      },
       "Entity" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -1341,6 +1256,23 @@
           }
         },
         "required" : [ "name" ]
+      },
+      "BasketElement" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "basketId" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "mediaResourceId" : {
+            "type" : "string"
+          },
+          "entity" : {
+            "$ref" : "#/components/schemas/Entity"
+          }
+        },
+        "required" : [ "basketId", "mediaResourceId", "entity" ]
       }
     },
     "securitySchemes" : {

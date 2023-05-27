@@ -1,7 +1,7 @@
 package eu.xreco.nmr.backend.model.api.retrieval
 
 /**
- * A scored [MediaItem] as returned by the by XRECO NRM backend retrieval API.
+ * A scored [MediaResource] as returned by the by XRECO NRM backend retrieval API.
  *
  * @author Rahel Arnold
  * @author Ralph Gasser

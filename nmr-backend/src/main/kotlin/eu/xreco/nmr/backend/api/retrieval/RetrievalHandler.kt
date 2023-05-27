@@ -2,7 +2,6 @@ package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.api.retrieval.MediaItem
 import eu.xreco.nmr.backend.model.api.retrieval.RetrievalResult
 import eu.xreco.nmr.backend.model.api.retrieval.ScoredMediaItem
 import eu.xreco.nmr.backend.model.api.retrieval.Text
@@ -22,77 +21,6 @@ import java.util.*
 import kotlin.FloatArray
 import kotlin.Int
 import kotlin.String
-
-@OpenApi(
-    summary = "Get attributes of given element",
-    path = "/api/retrieval/{elementId}",
-    tags = [Retrieval],
-    operationId = "getAttributesOfElement",
-    methods = [HttpMethod.GET],
-    pathParams = [
-        OpenApiParam(
-            name = "elementId", type = String::class, "Id of element which attributes will be returned", required = true
-        ),
-    ],
-    responses = [
-        OpenApiResponse("200", [OpenApiContent(MediaItem::class)]),
-        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
-        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
-        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
-    ]
-)
-fun retrieve(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    val elementId = context.pathParam("elementId")
-
-    try {
-        // prepare query
-        val query = Query("${config.database.schemaName}.${"media_resources"}").where(
-            Compare(
-                "mediaResourceId", "=", elementId
-            )
-        ).select("*")
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        var media: MediaItem
-        val list = LinkedList<Text>()
-        results.forEach { t ->
-            media = MediaItem(
-                t.asString("mediaResourceId"),
-                t.asString("description"),
-                t.asInt("type"),
-                t.asString("title"),
-                t.asString("uri"),
-                t.asString("path")
-            )
-            context.json(media)
-        }
-
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400,
-                    "The requested element '${config.database.schemaName}.mediaResourceId.${elementId}' could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404,
-                "The requested element '${config.database.schemaName}.mediaResourceId.${elementId}' could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
-        }
-    }
-}
-
 @OpenApi(
     summary = "Get entity of given element",
     path = "/api/retrieval/lookup/{elementId}/{entity}",
@@ -219,7 +147,7 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
     ]
 )
 
-fun fullText(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
+fun fullText(context: Context, client: SimpleClient, config: Config) {
     val text = context.pathParam("text")
     val entity = context.pathParam("entity")
     val pageSize = context.pathParam("pageSize").toInt()
