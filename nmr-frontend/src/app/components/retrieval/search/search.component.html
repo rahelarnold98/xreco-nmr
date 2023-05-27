@@ -13,7 +13,6 @@
 </div>
 
 <!-- Search bar (top) -->
-
 <div id="toolbar" *ngIf="searchIssued">
     <div class="logo">
         <img ngSrc="assets/logo.png" height="95" width="150" alt="XReco Logo"/>
@@ -25,14 +24,40 @@
     </div>
 
     <div class="basket">
+        <button mat-flat-button matTooltip="Add to basket." [matMenuTriggerFor]="basketMenu">
+            Active basket: {{(activeBasket | async)?.name}}
+        </button>
 
+        <mat-menu #basketMenu="matMenu">
+            <button mat-menu-item *ngFor="let basket of (baskets | async)" (click)="switchBasket(basket)">
+                {{basket.name}}
+            </button>
+            <mat-divider *ngIf="(baskets | async) && (baskets | async)!!.length > 0"></mat-divider>
+            <button mat-menu-item (click)="createBasket()">Create new basket</button>
+        </mat-menu>
     </div>
 </div>
 
-
-
 <div id="results">
-    <div class="item" *ngFor="let item of (items | async)">
+    <div *ngFor="let item of (items | async)" class="item"
+         [style.background-color]="'rgba(0,255,0,' + 255 * (item.score / bestScore) + ')'"
+         (mouseenter)="focus = item"
+         (mouseleave)="focus = null">
 
+        <img src="{{pathForItem(item)}}" alt="Preview image of media resource {{item.id}}.">
+
+        <div *ngIf="focus == item" class="footer">
+            <button mat-icon-button matTooltip="Show details." (click)="showDetails(item)">
+                <mat-icon>remove_red_eye</mat-icon>
+            </button>
+
+            <button mat-icon-button matTooltip="Find similar entries." (click)="searchSimilar(item)">
+                <mat-icon>youtube_searched_for</mat-icon>
+            </button>
+
+            <button *ngIf="(activeBasket | async)" mat-icon-button matTooltip="Add to basket '{{(activeBasket | async)?.name}}'." (click)="addToBasket(item)">
+                <mat-icon>shopping_basket</mat-icon>
+            </button>
+        </div>
     </div>
 </div>

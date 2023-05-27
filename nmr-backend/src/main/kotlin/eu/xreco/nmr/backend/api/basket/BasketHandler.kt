@@ -2,7 +2,8 @@ package eu.xreco.nmr.backend.api.basket
 
 import eu.xreco.nmr.backend.api.Basket
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.api.basekt.BasketList
+import eu.xreco.nmr.backend.model.api.basket.Basket
+import eu.xreco.nmr.backend.model.api.basket.BasketList
 import eu.xreco.nmr.backend.model.api.retrieval.Text
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
@@ -285,40 +286,21 @@ fun listElements(context: Context, client: SimpleClient, config: Config) {/* TOD
     ],
 
     )
-fun listAll(context: Context, client: SimpleClient, config: Config) {/* TODO implement */
+fun listAll(context: Context, client: SimpleClient, config: Config) {
     try {
-        // prepare query
         val query = Query("${config.database.schemaName}.${"baskets"}").select("name")
-
-        // execute query
         val results = client.query(query)
-
-        // save results as LinkedList
-
-        val list = LinkedList<Text>()
+        val list = LinkedList<Basket>()
         results.forEach { t ->
-            list.add(Text(t.asString("name")!!))
+            list.add(Basket(t.asString("name")!!, emptyList()))
         }
-        context.json(list)
-
-
+        context.json(BasketList(list))
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400, "The requested entity '${config.database.schemaName}.${"baskets"} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested entity '${config.database.schemaName}.${"baskets"} could not be found."
-            )
-
+            Status.Code.INTERNAL -> throw ErrorStatusException(400, "The requested entity '${config.database.schemaName}.${"baskets"} could not be found.")
+            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${"baskets"} could not be found.")
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
+            else -> throw e.message?.let { ErrorStatusException(400, it) }!!
         }
     }
 }

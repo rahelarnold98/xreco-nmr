@@ -14,7 +14,6 @@ import org.vitrivr.cottontail.core.types.Types
  * @author Ralph Gasser
  * @version 1.0.0
  */
-@Serializable
 data class BasketElement(val basketId: Int, val mediaResourceId: String): EntityObject {
 
     @Transient
