@@ -927,20 +927,41 @@
         "security" : [ ]
       }
     },
-    "/api/retrieval/similarity/{elementId}/{pageSize}/{page}" : {
+    "/api/retrieval/similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Create a similarity query based on a given element id",
-        "operationId" : "getSimilarityQuery",
+        "summary" : "Issues a similarity query based on a provided media resource id.",
+        "operationId" : "getSearchSimilar",
         "parameters" : [ {
-          "name" : "elementId",
+          "name" : "entity",
           "in" : "path",
-          "description" : "Id of element to get most similar of",
+          "description" : "Name of the entity to query.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "name" : "mediaResourceId",
+          "in" : "path",
+          "description" : "ID of the media resource to find similar entries for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "timestamp",
+          "in" : "path",
+          "description" : "The exact timestamp of to find similar entries for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         }, {
           "name" : "pageSize",
@@ -971,7 +992,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ScoredMediaItem"
+                  "$ref" : "#/components/schemas/RetrievalResult"
                 }
               }
             }
@@ -1014,8 +1035,8 @@
     "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Create a fulltext query.",
-        "operationId" : "getFullTextQuery",
+        "summary" : "Issues a fulltext query.",
+        "operationId" : "getSearchFulltext",
         "parameters" : [ {
           "name" : "entity",
           "in" : "path",

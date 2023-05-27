@@ -133,7 +133,7 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
     summary = "Issues a fulltext query.",
     path = "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}",
     tags = [Retrieval],
-    operationId = "getFullTextQuery",
+    operationId = "getSearchFulltext",
     methods = [HttpMethod.GET],
     pathParams = [
         OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
@@ -191,11 +191,12 @@ fun getFulltext(context: Context, client: SimpleClient, config: Config) {
     summary = "Issues a similarity query based on a provided media resource id.",
     path = "/api/retrieval/similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}",
     tags = [Retrieval],
-    operationId = "getSimilar",
+    operationId = "getSearchSimilar",
     methods = [HttpMethod.GET],
     pathParams = [
         OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
-        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to get most similar entries for.", required = true),
+        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to find similar entries for.", required = true),
+        OpenApiParam(name = "timestamp", type = Long::class, description = "The exact timestamp of to find similar entries for.", required = true),
         OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
         OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],
@@ -210,7 +211,7 @@ fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO 
     /* Extract path parameters. */
     val mediaResourceId = context.pathParam("mediaResourceId")
     val entity = context.pathParam("entity")
-    val timestamp = (context.pathParam("timestamp").toLongOrNull() ?: 0L) * 1000L
+    val timestamp = (context.pathParam("timestamp").toLongOrNull() ?: 0L)
     val pageSize = context.pathParam("pageSize").toInt()
     val page = context.pathParam("page").toInt()
 
@@ -256,7 +257,6 @@ fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO 
 
         /* Send results. */
         context.json(RetrievalResult(page, pageSize, count, list))
-        context.json(list)
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
             Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
