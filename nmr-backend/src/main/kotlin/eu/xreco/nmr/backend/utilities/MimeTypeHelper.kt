@@ -827,7 +827,5 @@ object MimeTypeHelper {
         "zmm" to "application/vnd.handheld-entertainment+xml")
 
     fun mimeType(file: File) = mimeType(file.extension)
-
     fun mimeType(fileExtension: String) = mimeMap[fileExtension] ?: "application/octet-stream"
-
 }

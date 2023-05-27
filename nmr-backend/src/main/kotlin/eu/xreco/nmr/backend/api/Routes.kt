@@ -43,8 +43,8 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
         }
         path("resource") {
             ApiBuilder.get("{mediaResourceId}") { getResource(it, client, config) }
-            ApiBuilder.get("{mediaResourceId}/metadata") { getResource(it, client, config) }
-            ApiBuilder.get("{mediaResourceId}/preview/{timestamp}") { getMetadata(it, client, config) }
+            ApiBuilder.get("{mediaResourceId}/metadata") { getMetadata(it, client, config) }
+            ApiBuilder.get("{mediaResourceId}/preview/{timestamp}") { getPreview(it, client, config) }
         }
     }
 }

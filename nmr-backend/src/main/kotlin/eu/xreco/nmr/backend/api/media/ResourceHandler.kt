@@ -62,8 +62,11 @@ fun getResource(context: Context, client: SimpleClient, config: Config) {
         throw ErrorStatusException(404, "Could not find file for media resource $mediaResourceId.")
     }
 
-    /* Send file. */
-    context.sendFile(resourcePath)
+    /* Send or stream file. */
+    when(type) {
+        MediaType.VIDEO -> context.streamFile(resourcePath)
+        else ->  context.sendFile(resourcePath)
+    }
 }
 
 @OpenApi(
@@ -100,7 +103,7 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
             )
         }
 
-        if (results.isNotEmpty()) throw ErrorStatusException(404, "Could not find media resource with ID $mediaResourceId.")
+        if (results.isEmpty()) throw ErrorStatusException(404, "Could not find media resource with ID $mediaResourceId.")
         context.json(results.first())
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
@@ -186,4 +189,18 @@ private fun Context.sendFile(path: Path) {
     this.header("Cache-Control", "max-age=31622400")
     this.contentType(mimeType)
     this.result(Files.newInputStream(path, StandardOpenOption.READ))
+}
+
+/**
+ * Streams a file via this [Context].
+ *
+ * @param path The [Path] to the file to stream.
+ */
+private fun Context.streamFile(path: Path) {
+    if (!Files.exists(path)) throw ErrorStatusException(404, "Could not find file $path")
+    val mimeType = MimeTypeHelper.mimeType(path.toFile())
+    this.status(200)
+    this.header("Cache-Control", "max-age=31622400")
+    this.contentType(mimeType)
+    this.writeSeekableStream(Files.newInputStream(path, StandardOpenOption.READ), mimeType)
 }
