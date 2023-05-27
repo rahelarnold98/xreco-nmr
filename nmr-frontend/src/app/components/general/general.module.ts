@@ -9,6 +9,7 @@ import {MatMenuModule} from "@angular/material/menu";
 import {MatListModule} from "@angular/material/list";
 import {SimpleInputDialogComponent} from "./simple-input-dialog.component";
 import {MatInputModule} from "@angular/material/input";
+import {MatDialogModule} from "@angular/material/dialog";
 
 @NgModule({
   declarations: [SimpleInputDialogComponent],
@@ -23,7 +24,8 @@ import {MatInputModule} from "@angular/material/input";
     MatTooltipModule,
     MatMenuModule,
     MatListModule,
-    MatInputModule
+    MatInputModule,
+    MatDialogModule
   ],
   providers: []
 })

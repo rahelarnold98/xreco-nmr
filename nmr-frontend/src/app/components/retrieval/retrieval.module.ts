@@ -12,23 +12,25 @@ import {GeneralModule} from "../general/general.module";
 import {MatDialog, MatDialogModule} from "@angular/material/dialog";
 import {DetailsComponent} from "./details/details.component";
 import {MatCardModule} from "@angular/material/card";
+import {MatBadgeModule} from "@angular/material/badge";
 
 @NgModule({
     declarations: [SearchComponent, DetailsComponent],
-    imports: [
-        GeneralModule,
-        BrowserModule,
-        CommonModule,
-        NgOptimizedImage,
-        MatButtonModule,
-        FormsModule,
-        MatDialogModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatMenuModule,
-        MatListModule,
-        MatCardModule
-    ],
+  imports: [
+    GeneralModule,
+    BrowserModule,
+    CommonModule,
+    NgOptimizedImage,
+    MatButtonModule,
+    FormsModule,
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatMenuModule,
+    MatListModule,
+    MatCardModule,
+    MatBadgeModule
+  ],
     providers: [],
     bootstrap: []
 })

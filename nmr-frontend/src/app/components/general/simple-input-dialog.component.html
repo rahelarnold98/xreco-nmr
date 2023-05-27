@@ -1,10 +1,10 @@
-<h1 mat-dialog-title>Input Dialog</h1>
+<h1 mat-dialog-title>{{title}}</h1>
 <div mat-dialog-content>
   <mat-form-field>
-    <input matInput [(ngModel)]="inputValue" placeholder="Enter a value">
+    <input matInput [(ngModel)]="value" placeholder="Enter a value">
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button (click)="closeDialog()">OK</button>
-  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button (click)="return()">OK</button>
+  <button mat-button mat-dialog-close>Abort</button>
 </div>

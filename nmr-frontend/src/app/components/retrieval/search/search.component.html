@@ -20,21 +20,30 @@
 
     <div class="search">
         <input [(ngModel)]="searchInput" type="text" placeholder="Search the Neural Media Repository" class="search">
-        <button mat-flat-button color="primary"  (click)="search()">Search</button>
+        <button mat-flat-button color="primary" (click)="search()">Search</button>
     </div>
 
-    <div class="basket">
+    <div *ngIf="((baskets | async)?.length ? (baskets | async)?.length! : 0) > 0" class="basket" [matBadge]="(activeBasket | async)?.size">
         <button mat-flat-button matTooltip="Add to basket." [matMenuTriggerFor]="basketMenu">
             Active basket: {{(activeBasket | async)?.name}}
         </button>
 
         <mat-menu #basketMenu="matMenu">
             <button mat-menu-item *ngFor="let basket of (baskets | async)" (click)="switchBasket(basket)">
-                {{basket.name}}
+                {{basket.name}} ({{basket.size}})
             </button>
             <mat-divider *ngIf="(baskets | async) && (baskets | async)!!.length > 0"></mat-divider>
-            <button mat-menu-item (click)="createBasket()">Create new basket</button>
+            <button mat-menu-item (click)="createBasket()">New</button>
+            <button mat-menu-item (click)="deleteBasket()">Delete</button>
+
+            <button mat-menu-item>Checkout</button>
         </mat-menu>
+    </div>
+
+    <div *ngIf="((baskets | async)?.length ? (baskets | async)?.length! : 0) == 0" class="basket">
+        <button mat-flat-button matTooltip="Create new basket." (click)="createBasket()">
+            New basket
+        </button>
     </div>
 </div>
 

@@ -1,7 +1,7 @@
 import {Component} from "@angular/core";
-import {Basket, BasketElement, BasketList, BasketService, RetrievalService, ScoredMediaItem} from "../../../../../openapi";
+import {BasketPreview, BasketService, RetrievalService, ScoredMediaItem} from "../../../../../openapi";
 import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject} from "rxjs";
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import {SimpleInputDialogComponent} from "../../general/simple-input-dialog.component";
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
@@ -29,11 +29,11 @@ export class SearchComponent {
     searchIssued: boolean = false;
 
     /** The currently active page. */
-    private _baskets = new BehaviorSubject<Array<Basket>>([])
+    private _baskets = new BehaviorSubject<Array<BasketPreview>>([])
     public baskets = this._baskets.asObservable()
 
     /** The currently active basket. */
-    private _activeBasket = new BehaviorSubject<Basket|null>(null)
+    private _activeBasket = new BehaviorSubject<BasketPreview|null>(null)
     public activeBasket = this._activeBasket.asObservable()
 
 
@@ -134,18 +134,28 @@ export class SearchComponent {
      * Opens a dialog that can be used to provide a name and creates a new basket.
      */
     public createBasket() {
-        const dialogRef = this.dialog.open(SimpleInputDialogComponent, {height: '200px', width: '600px'} as MatDialogConfig);
+        const dialogRef = this.dialog.open(SimpleInputDialogComponent, {data: { title: 'Create new basket' }} as MatDialogConfig);
         dialogRef.afterClosed().subscribe(result => {
             this.basket.postBasket(result).subscribe(s => this.reloadBaskets())
         });
     }
 
     /**
-     * Switches the currently active {@link Basket}.
-     *
-     * @param basket The new {@link Basket} to select.
+     * Opens a dialog that can be used to provide a name and creates a new basket.
      */
-    public switchBasket(basket: Basket) {
+    public deleteBasket() {
+        if (this._activeBasket.value != null) {
+            this.basket.deleteBasket(this._activeBasket.value?.basketId!!).subscribe(s => this.reloadBaskets())
+        }
+    }
+
+
+    /**
+     * Switches the currently active {@link BasketPreview}.
+     *
+     * @param basket The new {@link BasketPreview} to select.
+     */
+    public switchBasket(basket: BasketPreview) {
         this._activeBasket.next(basket)
     }
 
@@ -156,9 +166,7 @@ export class SearchComponent {
      */
     public addToBasket(item: ScoredMediaItem) {
         if (this._activeBasket.value != null) {
-            this.basket.putToBasket(this._activeBasket.value?.name, item.id).subscribe(i => {
-
-            })
+            this.basket.putToBasket(this._activeBasket.value?.basketId, item.id).subscribe(s => this.reloadBaskets())
         }
     }
 
@@ -168,10 +176,13 @@ export class SearchComponent {
     public reloadBaskets() {
         this.basket.getAllBaskets().subscribe(l => {
             this._baskets.next(l.baskets)
-            if (!l.baskets.find(b => b.name == this._activeBasket.value?.name)) {
-                if (l.baskets.length > 0) {
-                    this._activeBasket.next(l.baskets[0])
-                }
+            let activeBasket = l.baskets.find(b => b.name == this._activeBasket.value?.name)
+            if (activeBasket) {
+                this._activeBasket.next(activeBasket)
+            } else if (l.baskets.length > 0) {
+                this._activeBasket.next(l.baskets[0])
+            } else {
+                this._activeBasket.next(null)
             }
         })
     }
