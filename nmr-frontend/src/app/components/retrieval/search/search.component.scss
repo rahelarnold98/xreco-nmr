@@ -45,7 +45,14 @@
 }
 
 #toolbar > .search {
+  display: flex;
   min-width: 400px;
+}
+
+#toolbar > .search  > input[type=text] {
+  padding: 10px 20px;
+  margin: 0;
+  height: 36px
 }
 
 .search > input[type=text] {
