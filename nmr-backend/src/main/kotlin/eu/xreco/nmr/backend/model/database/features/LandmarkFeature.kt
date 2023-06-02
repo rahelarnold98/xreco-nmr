@@ -17,8 +17,9 @@ import org.vitrivr.cottontail.grpc.CottontailGrpc
 data class LandmarkFeature(
     override val mediaResourceId: String,
     override val label: String,
-    override val start: Long? = null,
-    override val end: Long? = null
+    override val start: Float? = null,
+    override val end: Float? = null,
+    override val rep: Float? = null
 ) : LabelFeature {
 
     @Transient
@@ -30,8 +31,9 @@ data class LandmarkFeature(
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
             .column(name = "mediaResourceId", type = "String", nullable = false)
             .column(name = "label", type = "String", nullable = false)
-            .column(name = "start", type = "Long", nullable = false)
-            .column(name = "end", type = "Long", nullable = false)
+            .column(name = "start", type = "Float", nullable = false)
+            .column(name = "end", type = "Float", nullable = false)
+            .column(name = "rep", type = "Float", nullable = false)
 
 
         override fun indexes(schema: String): List<CreateIndex> = listOf(

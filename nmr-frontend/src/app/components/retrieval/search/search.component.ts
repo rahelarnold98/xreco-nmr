@@ -1,11 +1,12 @@
 import {Component} from "@angular/core";
 import {BasketPreview, BasketService, RetrievalService, ScoredMediaItem} from "../../../../../openapi";
 import {ActivatedRoute, Router} from "@angular/router";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, forkJoin, Observable} from "rxjs";
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import {SimpleInputDialogComponent} from "../../general/simple-input-dialog.component";
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {DetailsComponent} from "../details/details.component";
+import { HttpClient } from '@angular/common/http';
 
 @Component({
     selector: 'nmr-search',
@@ -118,7 +119,7 @@ export class SearchComponent {
      */
     public searchSimilar(item: ScoredMediaItem) {
         this.searchIssued = true
-        this.service.getSearchSimilar("features_clip", item.id, item.start ? 0 : item.start!, 500, 0).subscribe(result => {
+        this.service.getSearchSimilar("features_cdva", item.id, item.start ? 0 : item.start!, 500, 0).subscribe(result => {
             if (result.items.length > 0) {
                 this._bestScore.next(result.items[0].score)
             } else {

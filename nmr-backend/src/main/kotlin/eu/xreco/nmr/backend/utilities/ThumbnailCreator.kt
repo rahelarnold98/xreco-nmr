@@ -1,5 +1,6 @@
 package eu.xreco.nmr.backend.utilities
 
+import kotlinx.coroutines.runBlocking
 import org.bytedeco.javacv.FFmpegFrameGrabber
 import org.bytedeco.javacv.Java2DFrameConverter
 import java.awt.Image
@@ -40,10 +41,12 @@ object ThumbnailCreator {
      * @param maximumSize The maximum size of the thumbnail (i.e., the maximum bounding box).
      * @return [BufferedImage]
      */
-    fun thumbnailFromVideo(path: Path, frameNumber: Int, maximumSize: Int): BufferedImage? = Files.newInputStream(path, StandardOpenOption.READ).use { input ->
+    fun thumbnailFromVideo(path: Path, time: Long, maximumSize: Int): BufferedImage? = Files.newInputStream(path, StandardOpenOption.READ).use {
+         input ->
+        // TODO check
         val grabber = FFmpegFrameGrabber(input)
         grabber.start()
-        grabber.setVideoFrameNumber(frameNumber)
+        grabber.setVideoTimestamp(time)
         val frame = grabber.grabKeyFrame() ?: return null
         val image = converter.getBufferedImage(frame) ?: return null
         grabber.stop()
@@ -73,4 +76,8 @@ object ThumbnailCreator {
         graphics.dispose()
         return thumbnail
     }
+}
+
+private operator fun Number.times(i: Int): Long {
+    return this * i
 }

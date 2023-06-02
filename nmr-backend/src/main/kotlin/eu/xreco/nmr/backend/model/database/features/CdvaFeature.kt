@@ -12,8 +12,9 @@ import org.vitrivr.cottontail.client.language.ddl.CreateEntity
 data class CdvaFeature(
     override val mediaResourceId: String,
     override val feature: FloatArray,
-    override val start: Long? = null,
-    override val end: Long? = null
+    override val start: Float? = null,
+    override val end: Float? = null,
+    override val rep: Float? = null
 ) : FloatVectorFeature {
 
     @Transient
@@ -24,8 +25,9 @@ data class CdvaFeature(
         override fun create(schema: String): CreateEntity = CreateEntity("$schema.$name")
             .column(name = "mediaResourceId", type = "String", nullable = false)
             .column(name = "feature", type = "Float_Vector", length = 512, nullable = false)
-            .column(name = "start", type = "Long", nullable = false)
-            .column(name = "end", type = "Long", nullable = false)
+            .column(name = "start", type = "Float", nullable = false)
+            .column(name = "end", type = "Float", nullable = false)
+            .column(name = "rep", type = "Float", nullable = false)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -169,11 +169,12 @@ fun getFulltext(context: Context, client: SimpleClient, config: Config) {
             .select("mediaResourceId")
             .select("start")
             .select("end")
+            .select("rep")
             .order("score", Direction.DESC)
             .limit(pageSize.toLong()).skip(page * pageSize.toLong())
 
         client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asLong("start")!!, t.asLong("end")!!))
+            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
         }
 
         /* Send results. */
@@ -248,11 +249,12 @@ fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO 
         ).select("mediaResourceId")
         .select("start")
         .select("end")
+            .select("rep")
         .order("score", Direction.DESC)
         .limit(pageSize.toLong()).skip(page * pageSize.toLong())
 
         client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asLong("start")!!, t.asLong("end")!!))
+            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
         }
 
         /* Send results. */

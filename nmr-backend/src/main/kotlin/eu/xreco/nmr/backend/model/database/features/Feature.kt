@@ -13,14 +13,18 @@ interface Feature : EntityObject {
     /** The ID of the [MediaResource] this [Feature] describes. */
     val mediaResourceId: String
 
-    /** The start frame of the segment this [Feature] describes. */
-    val start: Long?
+    /** The start time of the segment this [Feature] describes. */
+    val start: Float?
 
-    /** The end frame of the segment this [Feature] describes. */
-    val end: Long?
+    /** The end time of the segment this [Feature] describes. */
+    val end: Float?
+
+    /** The representative time of the segment this [Feature] describes. */
+    val rep: Float?
+
 
     /**
      * Returns true, if this [LabelFeature] describes a segment.
      */
-    fun isSegment(): Boolean = this.start != null && this.end != null
+    fun isSegment(): Boolean = this.start != null && this.end != null && this.rep != null
 }

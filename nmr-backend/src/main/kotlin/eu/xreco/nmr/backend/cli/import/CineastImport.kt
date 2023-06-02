@@ -69,7 +69,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
      * @param mapping A [Map] that maps segment IDs to media resource IDs and start/end times.
      * @return True on success, false on failure
      */
-    private fun loadClip(path: Path, mapping: Map<String, Triple<String, Long, Long>>): Boolean {
+    private fun loadClip(path: Path, mapping: Map<String, SegmentQuartuple>): Boolean {
         if (!Files.exists(path)) {
             System.err.println("Import of CLIP feature failed. File $path does not seem to exist.")
             return false
@@ -81,15 +81,16 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         try {
             Files.newInputStream(path).use {
                 val insert =
-                    BatchInsert("$schema.${ClipFeature.name}").columns("mediaResourceId", "feature", "start", "end")
+                    BatchInsert("$schema.${ClipFeature.name}").columns("mediaResourceId", "feature", "start", "end", "rep")
                         .txId(txId)
                 for (l in Json.decodeToSequence<VectorFeature>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
                     val segment = mapping[l.id] ?: continue
                     if (!insert.values(
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     ) {
                         this.client.insert(insert).close()
@@ -97,8 +98,9 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                         insert.values(
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     }
                     counter += 1
@@ -130,7 +132,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
      * @param mapping A [Map] that maps segment IDs to media resource IDs and start/end times.
      * @return True on success, false on failure
      */
-    private fun loadCdva(path: Path, mapping: Map<String, Triple<String, Long, Long>>): Boolean {
+    private fun loadCdva(path: Path, mapping: Map<String, SegmentQuartuple>): Boolean {
         if (!Files.exists(path)) {
             System.err.println("Import of CDVA feature failed. File $path does not seem to exist.")
             return false
@@ -142,15 +144,16 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         try {
             Files.newInputStream(path).use {
                 val insert =
-                    BatchInsert("$schema.${CdvaFeature.name}").columns("mediaResourceId", "feature", "start", "end")
+                    BatchInsert("$schema.${CdvaFeature.name}").columns("mediaResourceId", "feature", "start", "end", "rep")
                         .txId(txId)
                 for (l in Json.decodeToSequence<VectorFeature>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
                     val segment = mapping[l.id] ?: continue
                     if (!insert.values(
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     ) {
                         this.client.insert(insert).close()
@@ -158,8 +161,9 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                         insert.values(
                             StringValue(segment.first),
                             FloatVectorValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     }
                     counter += 1
@@ -194,7 +198,7 @@ class CineastImport(private val client: SimpleClient, private val schema: String
      * @return True on success, false on failure
      */
     @Deprecated("Legacy data format. Should not be used anymore.")
-    private fun loadLegacyLandmarks(path: Path, mapping: Map<String, Triple<String, Long, Long>>): Boolean {
+    private fun loadLegacyLandmarks(path: Path, mapping: Map<String, SegmentQuartuple>): Boolean {
         if (!Files.exists(path)) {
             System.err.println("Import of landmarks failed. File $path does not seem to exist.")
             return false
@@ -206,15 +210,16 @@ class CineastImport(private val client: SimpleClient, private val schema: String
         try {
             Files.newInputStream(path).use {
                 val insert =
-                    BatchInsert("$schema.${LandmarkFeature.name}").columns("mediaResourceId", "label", "start", "end")
+                    BatchInsert("$schema.${LandmarkFeature.name}").columns("mediaResourceId", "label", "start", "end", "rep")
                         .txId(txId)
                 for (l in Json.decodeToSequence<LegacyLandmarks>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
                     val segment = mapping[l.id] ?: continue
                     if (!insert.values(
                             StringValue(segment.first),
                             StringValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     ) {
                         this.client.insert(insert).close()
@@ -222,8 +227,9 @@ class CineastImport(private val client: SimpleClient, private val schema: String
                         insert.values(
                             StringValue(segment.first),
                             StringValue(l.feature),
-                            LongValue(segment.second),
-                            LongValue(segment.third)
+                            FloatValue(segment.second),
+                            FloatValue(segment.third),
+                            FloatValue(segment.forth)
                         )
                     }
                     counter += 1
@@ -316,16 +322,16 @@ class CineastImport(private val client: SimpleClient, private val schema: String
      * @param path The [Path] to the file that contains the media objects.
      * @return Segment mapping
      */
-    private fun createSegmentMapping(path: Path): Map<String, Triple<String, Long, Long>> {
+    private fun createSegmentMapping(path: Path): Map<String, SegmentQuartuple> {
         if (!Files.exists(this.input.resolve(FILENAME_CINEAST_SEGMENT))) {
             System.err.println("Creation of segment map failed. File $path does not seem to exist. ")
             return emptyMap()
         }
-        val map = HashMap<String, Triple<String, Long, Long>>()
+        val map = HashMap<String, SegmentQuartuple>()
         try {
             Files.newInputStream(path).use {
                 for (s in Json.decodeToSequence<MediaSegment>(it, DecodeSequenceMode.ARRAY_WRAPPED)) {
-                    map[s.segmentid] = Triple(s.objectid, s.segmentrepresentative, s.segmentrepresentative)
+                    map[s.segmentid] = SegmentQuartuple(s.objectid, s.segmentstartabs, s.segmentendabs, s.segmentrepresentativeabs)
                 }
             }
         } catch (e: Throwable) {

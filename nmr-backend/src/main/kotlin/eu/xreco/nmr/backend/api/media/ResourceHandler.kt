@@ -21,6 +21,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
+import kotlin.math.roundToInt
 
 @OpenApi(
     summary = "Gets the media resource provided by the given ID.",
@@ -29,7 +30,12 @@ import javax.imageio.ImageIO
     operationId = "getMediaResource",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "mediaResourceId", type = String::class, "ID of the media resource to access.", required = true),
+        OpenApiParam(
+            name = "mediaResourceId",
+            type = String::class,
+            "ID of the media resource to access.",
+            required = true
+        ),
     ],
     responses = [
         OpenApiResponse("200"),
@@ -40,7 +46,10 @@ import javax.imageio.ImageIO
 )
 fun getResource(context: Context, client: SimpleClient, config: Config) {
     val mediaResourceId = context.pathParam("mediaResourceId")
-    val query = Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(Compare("mediaResourceId", "=", mediaResourceId))
+    val query =
+        Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(
+            Compare("mediaResourceId", "=", mediaResourceId)
+        )
     val (relative, type) = try {
         var path: String? = null
         var type: Int? = null
@@ -48,7 +57,10 @@ fun getResource(context: Context, client: SimpleClient, config: Config) {
             path = it.asString("path")
             type = it.asInt("type")
         }
-        path to MediaType.values()[type ?: throw ErrorStatusException(404, "Could not find media resource ${mediaResourceId}.")]
+        path to MediaType.values()[type ?: throw ErrorStatusException(
+            404,
+            "Could not find media resource ${mediaResourceId}."
+        )]
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
             Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
@@ -63,9 +75,9 @@ fun getResource(context: Context, client: SimpleClient, config: Config) {
     }
 
     /* Send or stream file. */
-    when(type) {
+    when (type) {
         MediaType.VIDEO -> context.streamFile(resourcePath)
-        else ->  context.sendFile(resourcePath)
+        else -> context.sendFile(resourcePath)
     }
 }
 
@@ -76,7 +88,12 @@ fun getResource(context: Context, client: SimpleClient, config: Config) {
     operationId = "getMediaResourceMetadata",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "mediaResourceId", type = String::class, "ID of the media resource to access metadata for.", required = true),
+        OpenApiParam(
+            name = "mediaResourceId",
+            type = String::class,
+            "ID of the media resource to access metadata for.",
+            required = true
+        ),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(MediaResource::class)]),
@@ -87,7 +104,10 @@ fun getResource(context: Context, client: SimpleClient, config: Config) {
 )
 fun getMetadata(context: Context, client: SimpleClient, config: Config) {
     val mediaResourceId = context.pathParam("mediaResourceId")
-    val query = Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(Compare("mediaResourceId", "=", mediaResourceId))
+    val query =
+        Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(
+            Compare("mediaResourceId", "=", mediaResourceId)
+        )
     try {
         val results = mutableListOf<MediaResource>()
         client.query(query).forEach {
@@ -103,7 +123,10 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
             )
         }
 
-        if (results.isEmpty()) throw ErrorStatusException(404, "Could not find media resource with ID $mediaResourceId.")
+        if (results.isEmpty()) throw ErrorStatusException(
+            404,
+            "Could not find media resource with ID $mediaResourceId."
+        )
         context.json(results.first())
     } catch (e: StatusRuntimeException) {
         when (e.status.code) {
@@ -116,13 +139,23 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
 
 @OpenApi(
     summary = "Generates and returns a preview of a media resource.",
-    path = "/api/resource/{mediaResourceId}/preview/{frame}",
+    path = "/api/resource/{mediaResourceId}/preview/{time}",
     tags = [Resource],
     operationId = "getPreviewForMediaResource",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "mediaResourceId", type = String::class, "ID of the media resource to create preview for.", required = true),
-        OpenApiParam(name = "frame", type = Long::class, "Frame (number) of the requested preview (video only).", required = false),
+        OpenApiParam(
+            name = "mediaResourceId",
+            type = String::class,
+            "ID of the media resource to create preview for.",
+            required = true
+        ),
+        OpenApiParam(
+            name = "time",
+            type = Long::class,
+            "Time (absolut time) of the requested preview (video only).",
+            required = false
+        ),
     ],
     responses = [
         OpenApiResponse("200"),
@@ -133,13 +166,21 @@ fun getMetadata(context: Context, client: SimpleClient, config: Config) {
 )
 fun getPreview(context: Context, client: SimpleClient, config: Config) {
     val mediaResourceId = context.pathParam("mediaResourceId")
-    val frame = context.pathParam("frame").toIntOrNull() ?: 0
-
+    val time = context.pathParam("time").toFloatOrNull()//.toFloatOrNull() ?: 0
+    // TODO change back after API can handle parallel calls
+    val timestamp = (time?.times(1000000))?.toLong()
+    var timeSec = time?.roundToInt()
+    if (timeSec == 0) {
+        timeSec = 1
+    }
     /* If thumbnail does not exist exists in cache, generate it using JavaCV. */
-    val cachePath = Paths.get(config.media.thumbnails, "${mediaResourceId}_$frame.jpg")
+    val cachePath = Paths.get(config.media.thumbnails, "${mediaResourceId.substring(2)}_$timeSec.jpg")
     if (!Files.exists(cachePath)) {
         /* Find media resource entry. */
-        val query = Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(Compare("mediaResourceId", "=", mediaResourceId))
+        val query =
+            Query("${config.database.schemaName}.${eu.xreco.nmr.backend.model.database.core.MediaResource.name}").where(
+                Compare("mediaResourceId", "=", mediaResourceId)
+            )
         val (relative, type) = try {
             var path: String? = null
             var type: Int? = null
@@ -147,7 +188,10 @@ fun getPreview(context: Context, client: SimpleClient, config: Config) {
                 path = it.asString("path")
                 type = it.asInt("type")
             }
-            path to MediaType.values()[type ?: throw ErrorStatusException(404, "Could not find media resource ${mediaResourceId}.")]
+            path to MediaType.values()[type ?: throw ErrorStatusException(
+                404,
+                "Could not find media resource ${mediaResourceId}."
+            )]
         } catch (e: StatusRuntimeException) {
             null
         } ?: throw ErrorStatusException(404, "Could not find media resource ${mediaResourceId}.")
@@ -158,12 +202,22 @@ fun getPreview(context: Context, client: SimpleClient, config: Config) {
             throw ErrorStatusException(404, "Could not find file for media resource $mediaResourceId.")
         }
 
+
         /* Extract image and store it. */
         try {
-            val thumbnail = when(type) {
-                MediaType.VIDEO -> ThumbnailCreator.thumbnailFromVideo(videoPath, frame, config.media.thumbnailSize)
+            val thumbnail = when (type) {
+                MediaType.VIDEO -> timestamp?.let {
+                    ThumbnailCreator.thumbnailFromVideo(
+                        videoPath,
+                        it, config.media.thumbnailSize
+                    )
+                }
+
                 MediaType.IMAGES -> ThumbnailCreator.thumbnailFromImage(videoPath, config.media.thumbnailSize)
-                else -> throw ErrorStatusException(400, "Generation of thumbnails is1 currently not supported for media type $type.")
+                else -> throw ErrorStatusException(
+                    400,
+                    "Generation of thumbnails is currently not supported for media type $type."
+                )
             }
             Files.newOutputStream(cachePath, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { output ->
                 ImageIO.write(thumbnail, "jpg", output)
@@ -173,9 +227,11 @@ fun getPreview(context: Context, client: SimpleClient, config: Config) {
         }
     }
 
+
     /* Send image. */
     context.sendFile(cachePath)
 }
+
 
 /**
  * Sends a file via this [Context].

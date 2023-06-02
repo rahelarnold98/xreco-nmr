@@ -705,7 +705,7 @@
         "security" : [ ]
       }
     },
-    "/api/resource/{mediaResourceId}/preview/{frame}" : {
+    "/api/resource/{mediaResourceId}/preview/{time}" : {
       "get" : {
         "tags" : [ "Resource" ],
         "summary" : "Generates and returns a preview of a media resource.",
@@ -721,9 +721,9 @@
             "type" : "string"
           }
         }, {
-          "name" : "frame",
+          "name" : "time",
           "in" : "path",
-          "description" : "Frame (number) of the requested preview (video only).",
+          "description" : "Time (absolut time) of the requested preview (video only).",
           "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1226,12 +1226,16 @@
             "format" : "double"
           },
           "start" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "number",
+            "format" : "float"
           },
           "end" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "number",
+            "format" : "float"
+          },
+          "rep" : {
+            "type" : "number",
+            "format" : "float"
           }
         },
         "required" : [ "id", "score" ]

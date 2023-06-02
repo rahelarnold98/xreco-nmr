@@ -7,4 +7,4 @@ package eu.xreco.nmr.backend.model.api.retrieval
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class ScoredMediaItem(val id: String, val score: Double, val start: Long? = null, val end: Long? = null)
+data class ScoredMediaItem(val id: String, val score: Double, val start: Float? = null, val end: Float? = null, val rep: Float? = null)

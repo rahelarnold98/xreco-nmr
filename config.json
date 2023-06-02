@@ -1,14 +1,9 @@
 {
-  "api": {
-    "port": 7070
+  "database":{
+    "host":"10.34.58.87"
   },
-  "database": {
-    "host": "localhost",
-    "port": 1865,
-    "schemaName": "xreco"
-  },
-  "mediaResource": {
-    "thumbnails": "path/to/thumbnail",
-    "videos": "path/to/video"
+  "media": {
+    "thumbnails":"/Users/rahelarnold/Documents/XReco/RAI-Landmarks/videos/sec",
+    "resources":"/Users/rahelarnold/Documents/XReco/RAI-Landmarks/"
   }
 }

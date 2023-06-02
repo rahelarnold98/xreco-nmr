@@ -9,6 +9,7 @@ import eu.xreco.nmr.backend.config.Config
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
+import kotlinx.coroutines.runBlocking
 import org.vitrivr.cottontail.client.SimpleClient
 
 /**
@@ -17,7 +18,7 @@ import org.vitrivr.cottontail.client.SimpleClient
  * @param client The [SimpleClient] instance used for database communication.
  * @param config The application configuration file.
  */
-fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = this.routes {
+fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin =  this.routes  { runBlocking {  }
     path("api") {
         path("authentication") {
             ApiBuilder.get("{username}/{password}") { login(it) }
@@ -26,7 +27,13 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
         path("retrieval") {
             ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
             ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { getFulltext(it, client, config) }
-            ApiBuilder.get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") { getSimilar(it, client, config) }
+            ApiBuilder.get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") {
+                getSimilar(
+                    it,
+                    client,
+                    config
+                )
+            }
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
         path("basket") {
@@ -44,7 +51,8 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin = th
         path("resource") {
             ApiBuilder.get("{mediaResourceId}") { getResource(it, client, config) }
             ApiBuilder.get("{mediaResourceId}/metadata") { getMetadata(it, client, config) }
-            ApiBuilder.get("{mediaResourceId}/preview/{frame}") { getPreview(it, client, config) }
+            ApiBuilder.get("{mediaResourceId}/preview/{time}") {  getPreview (it, client, config) }
         }
-    }
+
+}
 }

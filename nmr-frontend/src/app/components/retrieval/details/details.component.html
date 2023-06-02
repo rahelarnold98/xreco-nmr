@@ -3,6 +3,7 @@
   <div [ngSwitch]="(mediaResource|async)?.type">
     <video *ngSwitchCase="'VIDEO'" controls width="550">
       <source [src]="resourceUrl">
+      <!--TODO add time-->
     </video>
     <img *ngSwitchCase="'IMAGE'" [src]="resourceUrl" alt="Preview of {{mediaResourceId}}">
   </div>
