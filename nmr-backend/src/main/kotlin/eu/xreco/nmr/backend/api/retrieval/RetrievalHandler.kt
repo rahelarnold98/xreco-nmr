@@ -250,7 +250,7 @@ fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO 
         .select("start")
         .select("end")
             .select("rep")
-        .order("score", Direction.DESC)
+        .order("score", Direction.ASC)
         .limit(pageSize.toLong()).skip(page * pageSize.toLong())
 
         client.query(query).forEach { t ->
