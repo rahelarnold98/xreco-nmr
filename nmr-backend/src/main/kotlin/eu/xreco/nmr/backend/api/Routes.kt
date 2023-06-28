@@ -26,6 +26,7 @@ fun Javalin.initializeRoutes(client: SimpleClient, config: Config): Javalin =  t
         }
         path("retrieval") {
             ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, client, config) }
+            ApiBuilder.get("type/{elementId}") { type(it, client, config) }
             ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { getFulltext(it, client, config) }
             ApiBuilder.get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") {
                 getSimilar(

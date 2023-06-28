@@ -1129,6 +1129,72 @@
         "deprecated" : false,
         "security" : [ ]
       }
+    },
+    "/api/retrieval/type/{elementId}" : {
+      "get" : {
+        "tags" : [ "Retrieval" ],
+        "summary" : "Get type of given element",
+        "operationId" : "getValueOfElement",
+        "parameters" : [ {
+          "name" : "elementId",
+          "in" : "path",
+          "description" : "Id of element which will be returned",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "number",
+                    "format" : "float"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
     }
   },
   "components" : {
@@ -1188,6 +1254,10 @@
           }
         },
         "required" : [ "type" ]
+      },
+      "MediaType" : {
+        "type" : "string",
+        "enum" : [ "VIDEO", "IMAGES", "AUDIO" ]
       },
       "RetrievalResult" : {
         "type" : "object",
@@ -1273,10 +1343,6 @@
           }
         },
         "required" : [ "description" ]
-      },
-      "MediaType" : {
-        "type" : "string",
-        "enum" : [ "VIDEO", "IMAGES", "AUDIO" ]
       },
       "Entity" : {
         "type" : "object",

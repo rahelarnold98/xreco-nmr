@@ -2,9 +2,7 @@ package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
 import eu.xreco.nmr.backend.config.Config
-import eu.xreco.nmr.backend.model.api.retrieval.RetrievalResult
-import eu.xreco.nmr.backend.model.api.retrieval.ScoredMediaItem
-import eu.xreco.nmr.backend.model.api.retrieval.Text
+import eu.xreco.nmr.backend.model.api.retrieval.*
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import io.grpc.Status
@@ -128,6 +126,69 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
         }
     }
 }
+
+@OpenApi(
+    summary = "Get type of given element",
+    path = "/api/retrieval/type/{elementId}",
+    tags = [Retrieval],
+    operationId = "getTypeOfElement",
+    methods = [HttpMethod.GET],
+    pathParams = [
+        OpenApiParam(
+            name = "elementId",
+            type = String::class,
+            description = "Id of element to retrieve type of",
+            required = true
+        )
+    ],
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(MediaType::class)]),
+        OpenApiResponse("200", [OpenApiContent(FloatArray::class)]),
+        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+    ]
+)
+fun type(context: Context, client: SimpleClient, config: Config) {
+    val elementId = context.pathParam("elementId")
+    try {
+
+        // prepare query
+        val query = Query("${config.database.schemaName}.media_resources").where(Compare("mediaResourceId", "=", elementId))
+            .select("type")
+
+        // execute query
+        val results = client.query(query)
+
+        // save results as LinkedList
+        val list = LinkedList<MediaType>()
+        results.forEach { t ->
+            list.add(getMediaType(t.asInt("type")!!))
+        }
+        context.json(list)
+
+    } catch (e: StatusRuntimeException) {
+        when (e.status.code) {
+            Status.Code.INTERNAL -> {
+                throw ErrorStatusException(
+                    400,
+                    "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
+                )
+            }
+
+            Status.Code.NOT_FOUND -> throw ErrorStatusException(
+                404, "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
+            )
+
+            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
+
+            else -> {
+                throw e.message?.let { ErrorStatusException(400, it) }!!
+            }
+        }
+    }
+}
+
 
 @OpenApi(
     summary = "Issues a fulltext query.",
