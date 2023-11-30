@@ -1,22 +1,12 @@
 package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
-import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.model.api.retrieval.*
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
-import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import org.vitrivr.cottontail.client.SimpleClient
-import org.vitrivr.cottontail.client.language.basics.Direction
-import org.vitrivr.cottontail.client.language.basics.Distances
-import org.vitrivr.cottontail.client.language.basics.predicate.And
-import org.vitrivr.cottontail.client.language.basics.predicate.Compare
-import org.vitrivr.cottontail.client.language.dql.Query
-import org.vitrivr.cottontail.core.values.FloatVectorValue
-import java.util.*
+import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.query.execution.RetrievalRuntime
 import kotlin.FloatArray
 import kotlin.Int
 import kotlin.String
@@ -46,85 +36,8 @@ import kotlin.String
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    val elementId = context.pathParam("elementId")
-    val entity = context.pathParam("entity")
-
-    try {
-
-        val column: String
-        column = when (entity) {
-            "features_landmark" -> {
-                "label"
-            }
-
-            "features_clip" -> {
-                "feature"
-            }
-
-            else -> {
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}.${entity} does not exist."
-                )
-            }
-        }
-
-        // prepare query
-        val query = Query("${config.database.schemaName}.${entity}").where(Compare("mediaResourceId", "=", elementId))
-            .select(column).distinct(column)
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        when (entity) {
-            "features_landmark" -> {
-                val list = LinkedList<Text>()
-                results.forEach { t ->
-                    list.add(Text(t.asString(column)!!))
-                }
-                context.json(list)
-
-            }
-
-            "features_clip" -> {
-                val list = LinkedList<FloatArray>()
-                //
-                results.forEach { t ->
-                    // TODO fill
-                    list.add(t.asFloatVector("feature")!!)
-                }
-                //val floatArray = list.toFloatArray()
-                context.json(list)
-            }
-
-            else -> {
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}.${entity} does not exist."
-                )
-            }
-        }
-
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400,
-                    "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
-        }
-    }
+fun lookup(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {/* TODO implement*/
+   TODO()
 }
 
 @OpenApi(
@@ -149,44 +62,8 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun type(context: Context, client: SimpleClient, config: Config) {
-    val elementId = context.pathParam("elementId")
-    try {
-
-        // prepare query
-        val query = Query("${config.database.schemaName}.media_resources").where(Compare("mediaResourceId", "=", elementId))
-            .select("type")
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        val list = LinkedList<MediaType>()
-        results.forEach { t ->
-            list.add(getMediaType(t.asInt("type")!!))
-        }
-        context.json(list)
-
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400,
-                    "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
-        }
-    }
+fun type(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+    TODO()
 }
 
 
@@ -210,43 +87,8 @@ fun type(context: Context, client: SimpleClient, config: Config) {
     ]
 )
 
-fun getFulltext(context: Context, client: SimpleClient, config: Config) {
-    val text = context.pathParam("text")
-    val entity = context.pathParam("entity")
-    val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
-    try {
-        /* Determine how many entries can be found by the query. */
-        var count = 0L
-        val countQuery = Query("${config.database.schemaName}.$entity").fulltext("label", text, "score").count()
-        client.query(countQuery).forEach {
-            count = it.asLong(0)!!
-        }
-
-        /* Query and save results to list*/
-        val list = ArrayList<ScoredMediaItem>(pageSize)
-        val query = Query("${config.database.schemaName}.$entity")
-            .fulltext("label", text, "score")
-            .select("mediaResourceId")
-            .select("start")
-            .select("end")
-            .select("rep")
-            .order("score", Direction.DESC)
-            .limit(pageSize.toLong()).skip(page * pageSize.toLong())
-
-        client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
-        }
-
-        /* Send results. */
-        context.json(RetrievalResult(page, pageSize, count, list))
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-            else -> throw ErrorStatusException(400, e.message ?: "Unknown error")
-        }
-    }
+fun getFulltext(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+    TODO()
 }
 
 @OpenApi(
@@ -269,64 +111,8 @@ fun getFulltext(context: Context, client: SimpleClient, config: Config) {
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    /* Extract path parameters. */
-    val mediaResourceId = context.pathParam("mediaResourceId")
-    val entity = context.pathParam("entity")
-    val timestamp = (context.pathParam("timestamp").toLongOrNull() ?: 0L)
-    val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
-
-    /* Handle similarity (more-like-this) query. */
-    try {
-        /* Extract query vector. */
-        val exampleQuery = Query("${config.database.schemaName}.${entity}").where(
-            And(
-                Compare("mediaResourceId", "=", mediaResourceId),
-                And(
-                    Compare("start", ">=", timestamp),
-                    Compare("end", "<=", timestamp)
-                )
-            )
-        ).select("feature")
-        val vector: FloatArray = client.query(exampleQuery).use { result ->
-            if (result.hasNext()) {
-                result.next().asFloatVector("feature")!!
-            } else {
-                throw ErrorStatusException(404, "Could not find feature '${entity}' for media resource ${mediaResourceId}.")
-            }
-        }
-
-        /* Determine how many entries can be found by the query. */
-        val countQuery = Query("${config.database.schemaName}.$entity").count()
-        val count = client.query(countQuery).use {
-            it.next().asLong(0)!!
-        }
-
-        /* Issue similarity search. */
-        val list = ArrayList<ScoredMediaItem>(pageSize)
-        val query = Query("${config.database.schemaName}.${entity}").distance(
-            "feature", FloatVectorValue(vector), Distances.EUCLIDEAN, "score"
-        ).select("mediaResourceId")
-        .select("start")
-        .select("end")
-            .select("rep")
-        .order("score", Direction.ASC)
-        .limit(pageSize.toLong()).skip(page * pageSize.toLong())
-
-        client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
-        }
-
-        /* Send results. */
-        context.json(RetrievalResult(page, pageSize, count, list))
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Database is currently not available.")
-            else -> ErrorStatusException(400, e.message ?: "Unknown error")
-        }
-    }
+fun getSimilar(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {/* TODO implement*/
+    TODO()
 }
 
 @OpenApi(

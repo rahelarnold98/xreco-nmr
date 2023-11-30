@@ -38,6 +38,9 @@ dependencies {
     /* Java CV. */
     implementation group: 'org.bytedeco', name: 'javacv-platform', version: version_javacv
 
+    /* Min.IO */
+    implementation group: 'io.minio', name: 'minio', version: version_minio
+
     /* Javalin */
     implementation group: 'io.javalin', name: 'javalin', version: version_javalin
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
