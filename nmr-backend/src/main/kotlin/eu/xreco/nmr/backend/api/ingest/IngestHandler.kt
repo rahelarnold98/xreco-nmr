@@ -4,6 +4,7 @@ import eu.xreco.nmr.backend.model.api.ingest.IngestStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 
@@ -21,7 +22,7 @@ import org.vitrivr.engine.query.execution.RetrievalRuntime
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun ingest(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun ingest(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     TODO()
 }
 
@@ -38,7 +39,7 @@ fun ingest(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) 
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun ingestStatus(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun ingestStatus(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     TODO()
 }
 
@@ -55,7 +56,7 @@ fun ingestStatus(context: Context, manager: SchemaManager, runtime: RetrievalRun
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun ingestAbort(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun ingestAbort(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     TODO()
 }
 

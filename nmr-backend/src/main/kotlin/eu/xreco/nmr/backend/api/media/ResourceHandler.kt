@@ -9,6 +9,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.minio.GetObjectArgs
 import io.minio.MinioClient
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 
@@ -28,7 +29,7 @@ import org.vitrivr.engine.query.execution.RetrievalRuntime
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun getMetadata(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun getMetadata(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     val assetId = context.pathParam("assetId")
     TODO()
 }

@@ -5,6 +5,7 @@ import eu.xreco.nmr.backend.model.api.retrieval.*
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 import kotlin.FloatArray
@@ -36,7 +37,7 @@ import kotlin.String
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun lookup(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {/* TODO implement*/
+fun lookup(context: Context, manager: SchemaManager, executor: ExecutionServer) {/* TODO implement*/
    TODO()
 }
 
@@ -62,7 +63,7 @@ fun lookup(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) 
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun type(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun type(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     TODO()
 }
 
@@ -87,7 +88,7 @@ fun type(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
     ]
 )
 
-fun getFulltext(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {
+fun getFulltext(context: Context, manager: SchemaManager, executor: ExecutionServer) {
     TODO()
 }
 
@@ -111,7 +112,7 @@ fun getFulltext(context: Context, manager: SchemaManager, runtime: RetrievalRunt
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun getSimilar(context: Context, manager: SchemaManager, runtime: RetrievalRuntime) {/* TODO implement*/
+fun getSimilar(context: Context, manager: SchemaManager, executor: ExecutionServer) {/* TODO implement*/
     TODO()
 }
 

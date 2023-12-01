@@ -12,7 +12,7 @@ import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 
 /** Version of NMR Backend API. */
 const val VERSION = "1.0.0"
@@ -29,14 +29,14 @@ fun main(args: Array<String>) {
     manager.load(config.schema)
 
     /* Initialize retrieval runtime. */
-    val runtime = RetrievalRuntime()
+    val executor = ExecutionServer()
 
     /* Create and start Javalin instance. */
     javalin().before {
         /* TODO: Logging. */
     }.exception(Exception::class.java) { e, ctx ->
         /* TODO: Error handling. */
-    }.initializeRoutes(config, manager, runtime).exception(ErrorStatusException::class.java) { e, ctx ->
+    }.initializeRoutes(config, manager, executor).exception(ErrorStatusException::class.java) { e, ctx ->
         ctx.status(e.code).json(e.toStatus())
     }.exception(Exception::class.java) { e, ctx ->
         ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))

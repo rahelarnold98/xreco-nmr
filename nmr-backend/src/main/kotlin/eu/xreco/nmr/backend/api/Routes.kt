@@ -12,6 +12,7 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
 import kotlinx.coroutines.runBlocking
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.query.execution.RetrievalRuntime
 
@@ -20,40 +21,40 @@ import org.vitrivr.engine.query.execution.RetrievalRuntime
  *
  * @param config The application configuration.
  * @param manager The [SchemaManager] instance
- * @param runtime The [RetrievalRuntime] instance.
+ * @param runtime The [ExecutionServer] instance.
  */
-fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: RetrievalRuntime): Javalin =  this.routes  { runBlocking {  }
+fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer): Javalin =  this.routes  { runBlocking {  }
     path("api") {
         path("authentication") {
-            ApiBuilder.get("{username}/{password}") { login(it) }
-            ApiBuilder.get("logout/{username}") { logout(it) }
+            get("{username}/{password}") { login(it) }
+            get("logout/{username}") { logout(it) }
         }
 
         /* Endpoints related to data ingest. */
-        ApiBuilder.post("ingest") { ingest(it, manager, runtime) }
+        post("ingest") { ingest(it, manager, runtime) }
         path("ingest") {
             path("{jobId}") {
-                delete("abort") { ingestAbort(it, manager, runtime) }
                 get("status") { ingestStatus(it, manager, runtime) }
+                delete("abort") { ingestAbort(it, manager, runtime) }
             }
         }
 
         /* Endpoints related to retrieval- */
         path("retrieval") {
-            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, manager, runtime) }
-            ApiBuilder.get("type/{elementId}") { type(it, manager, runtime) }
-            ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { getFulltext(it, manager, runtime) }
-            ApiBuilder.get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") {
+            get("lookup/{elementId}/{entity}") { lookup(it, manager, runtime) }
+            get("type/{elementId}") { type(it, manager, runtime) }
+            get("text/{entity}/{text}/{pageSize}/{page}") { getFulltext(it, manager, runtime) }
+            get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") {
                 getSimilar(it, manager, runtime)
             }
-            ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
+            get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
 
         /* Access to MinIO resources. */
         path("resource") {
             val minio = config.minio.newClient()
-            ApiBuilder.get("{mediaResourceId}") { getAssetResource(it, minio) }
-            ApiBuilder.get("{mediaResourceId}/metadata") { getMetadata(it, manager, runtime) }
+            get("{mediaResourceId}") { getAssetResource(it, minio) }
+            get("{mediaResourceId}/metadata") { getMetadata(it, manager, runtime) }
         }
     }
 }
