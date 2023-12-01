@@ -8,4 +8,4 @@ import kotlinx.serialization.Serializable
  * @version 1.0.0
  */
 @Serializable
-data class IngestStatus(val jobId: String, val assetId: String, val timestamp: Long = System.currentTimeMillis())
+data class IngestStatus(val jobId: String, val assetIds: List<String>, val timestamp: Long = System.currentTimeMillis())

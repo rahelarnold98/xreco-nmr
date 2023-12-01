@@ -9,21 +9,20 @@ import eu.xreco.nmr.backend.api.media.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.config.Config
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.path
-import kotlinx.coroutines.runBlocking
+import io.minio.MinioClient
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 
 /**
  * Extension function that generates the relevant routes of the XRECO NMR backend API.
  *
  * @param config The application configuration.
- * @param manager The [SchemaManager] instance
- * @param runtime The [ExecutionServer] instance.
+ * @param manager The vitrivr [SchemaManager] instance.
+ * @param runtime The vitrivr [ExecutionServer] instance.
+ * @param minio The [MinioClient] instance.
  */
-fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer): Javalin =  this.routes  { runBlocking {  }
+fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer, minio: MinioClient): Javalin =  this.routes  {
     path("api") {
         path("authentication") {
             get("{username}/{password}") { login(it) }
@@ -31,7 +30,7 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
         }
 
         /* Endpoints related to data ingest. */
-        post("ingest") { ingest(it, manager, runtime) }
+        post("ingest") { ingest(it, minio, manager, runtime) }
         path("ingest") {
             path("{jobId}") {
                 get("status") { ingestStatus(it, manager, runtime) }
@@ -52,7 +51,6 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
 
         /* Access to MinIO resources. */
         path("resource") {
-            val minio = config.minio.newClient()
             get("{mediaResourceId}") { getAssetResource(it, minio) }
             get("{mediaResourceId}/metadata") { getMetadata(it, manager, runtime) }
         }
