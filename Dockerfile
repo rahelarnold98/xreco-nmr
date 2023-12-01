@@ -13,4 +13,4 @@ COPY --from=build /src/nmr-backend/build/distributions/nmr-backend /nmr-backend
 
 EXPOSE 8080
 
-ENTRYPOINT /nmr-backend/bin/nmr /config.json
+ENTRYPOINT /nmr-backend/bin/nmr-backend /config.json
