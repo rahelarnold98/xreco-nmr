@@ -89,3 +89,7 @@ test {
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
+
+/* Change name for distribution. */
+distZip.archiveFileName = 'nmr-backend.zip'
+distTar.archiveFileName = 'nmr-backend.tar'
