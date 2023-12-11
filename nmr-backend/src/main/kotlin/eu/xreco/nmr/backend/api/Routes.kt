@@ -1,7 +1,5 @@
 package eu.xreco.nmr.backend.api
 
-import eu.xreco.nmr.backend.api.authentification.login
-import eu.xreco.nmr.backend.api.authentification.logout
 import eu.xreco.nmr.backend.api.ingest.ingest
 import eu.xreco.nmr.backend.api.ingest.ingestAbort
 import eu.xreco.nmr.backend.api.ingest.ingestStatus
@@ -24,11 +22,6 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
  */
 fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer, minio: MinioClient): Javalin =  this.routes  {
     path("api") {
-        path("authentication") {
-            get("{username}/{password}") { login(it) }
-            get("logout/{username}") { logout(it) }
-        }
-
         /* Endpoints related to data ingest. */
         post("ingest") { ingest(it, minio, manager, runtime) }
         path("ingest") {
