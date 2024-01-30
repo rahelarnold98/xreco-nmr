@@ -1,0 +1,56 @@
+{
+  "schema": "xreco",
+  "enumerator": {
+    "factory": "FileSystemEnumerator",
+    "parameters": {
+      "path": ".",
+      "depth": "5",
+      "mediaTypes": "VIDEO"
+    },
+    "decoder": {
+      "factory": "VideoDecoder",
+      "parameters": {
+        "contentFactory": "inMemoryContentFactory",
+        "video": "true",
+        "audio": "false"
+      },
+      "transformer": {
+        "factory": "PassthroughTransformer",
+        "parameters": {
+        },
+        "segmenters": [
+          {
+            "factory": "FixedDurationSegmenter",
+            "parameters": {
+              "retrievableWriter": "RetrievableWriter",
+              "duration": "1",
+              "lookAheadTime": "1"
+            },
+            "extractors": [
+              {"factory": "CLIPImageExtractor",
+                "parameters": {
+                  "field": "clip",
+                  "persisting": "true"
+                },
+                "exporters": [
+                  {"factory": "ThumbnailExporterFactory",
+                    "parameters": {
+                      "exporter": "thumbnail"
+                    },
+                    "resolver": {
+                      "factory": "DiskResolverFactory",
+                      "parameters": {
+                        "resolver": "thumbnail"
+                      }
+                    },
+                    "exporters": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

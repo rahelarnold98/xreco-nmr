@@ -11,6 +11,7 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import io.minio.MinioClient
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 
@@ -31,12 +32,15 @@ fun main(args: Array<String>) {
     /* Initialize retrieval runtime. */
     val executor = ExecutionServer()
 
+    /* Initialize MinIO client. */
+    val minio = MinioClient.builder().endpoint(config.minio.url).credentials(config.minio.accessKey, config.minio.secretKey).build()
+
     /* Create and start Javalin instance. */
     javalin().before {
         /* TODO: Logging. */
     }.exception(Exception::class.java) { e, ctx ->
         /* TODO: Error handling. */
-    }.initializeRoutes(config, manager, executor).exception(ErrorStatusException::class.java) { e, ctx ->
+    }.initializeRoutes(config, manager, executor, minio).exception(ErrorStatusException::class.java) { e, ctx ->
         ctx.status(e.code).json(e.toStatus())
     }.exception(Exception::class.java) { e, ctx ->
         ctx.status(500).json(ErrorStatus(500, "Internal server error: ${e.localizedMessage}"))

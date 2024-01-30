@@ -28,6 +28,7 @@ dependencies {
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-base', version: version_vitrivr
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-index', version: version_vitrivr
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-query', version: version_vitrivr
+    implementation group: 'org.vitrivr', name: 'vitrivr-engine-plugin-m3d', version: version_vitrivr
 
     /* Cottontail DB Driver + gRCP */
     implementation group: 'org.vitrivr', name: 'cottontaildb-client', version: version_cottontaildb_driver
