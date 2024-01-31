@@ -50,7 +50,7 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [FloatVectorDescriptor]
      */
-    override fun prototype(): FloatVectorDescriptor = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), this.featureList, true)
+    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), this.featureList, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
