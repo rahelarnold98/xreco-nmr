@@ -13,12 +13,15 @@ import io.minio.PutObjectArgs
 import io.minio.errors.ErrorResponseException
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionStatus
+import org.vitrivr.engine.core.model.content.element.AudioContent
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.core.source.file.MimeType.Companion.getMimeType
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.deleteIfExists
+
 
 
 @OpenApi(
@@ -32,7 +35,12 @@ import kotlin.io.path.deleteIfExists
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
-    ]
+    ],
+    requestBody = OpenApiRequestBody(
+        content = [
+            OpenApiContent(mimeType = "multipart/form-data"),
+        ]
+    ),
 )
 fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
     /* Upload assets to MinIO. */
@@ -99,6 +107,9 @@ fun chooseIngestPipeline(assetIds: List<UUID>): String {
     tags = ["Ingest"],
     operationId = "getIngestStatus",
     methods = [HttpMethod.GET],
+    pathParams = [
+        OpenApiParam(name = "jobId", type = String::class, "Job ID to query status of", required = true),
+    ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
