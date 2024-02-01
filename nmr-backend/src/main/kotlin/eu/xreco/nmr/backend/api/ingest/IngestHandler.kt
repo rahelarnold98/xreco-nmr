@@ -205,3 +205,35 @@ private fun uploadAssets(ctx: Context, minio: MinioClient): List<UUID> = ctx.upl
         throw ErrorStatusException(500, "Failed to upload asset ${file.filename()} due to a min.io error: ${e.message}")
     }
 }
+
+
+/**
+ * This method downloads a file using its unique [UUID] from the min.io server.
+ *
+ * @param minio The [MinioClient].
+ * @param assetId The [UUID] of the asset to download.
+*/
+private fun downloadAsset(minio: MinioClient, assetId: UUID): ByteArray {
+    try {
+        val getObjectResponse: InputStream = minio.getObject(
+            GetObjectArgs.builder()
+                .bucket(MinioConfig.ASSETS_BUCKET)
+                .`object`(assetId.toString())
+                .build()
+        )
+
+        val outputStream = ByteArrayOutputStream()
+
+        getObjectResponse.use { input ->
+            outputStream.use { output ->
+                input.transferTo(output)
+            }
+        }
+
+        return outputStream.toByteArray()
+
+    } catch (e: ErrorResponseException) {
+        throw ErrorStatusException(500, "Failed to download asset $assetId from min.io: ${e.message}")
+    }
+}
+
