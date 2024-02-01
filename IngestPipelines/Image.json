@@ -23,15 +23,15 @@
           "aggregators": [
             {
               "name": "AverageImageContentAggregator",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "nextExtractor": {
-                  "fieldName": "file",
+              "nextExtractor": {
+                "fieldName": "averagecolor",
+                "nextExporter": {
+                  "name": "ThumbnailExporter",
+                  "exporterName": "thumbnail",
                   "nextExtractor": {
-                    "fieldName": "time",
+                    "fieldName": "file",
                     "nextExtractor": {
-                      "fieldName": "clip"
+                      "fieldName": "time"
                     }
                   }
                 }
