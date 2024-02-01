@@ -5,9 +5,11 @@ import eu.xreco.nmr.backend.model.api.ingest.IngestStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import eu.xreco.nmr.backend.model.api.status.SuccessStatus
+import eu.xreco.nmr.backend.utilities.FileEnding
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.util.FileUtil
+import io.minio.GetObjectArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.errors.ErrorResponseException
@@ -18,6 +20,11 @@ import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.core.source.file.MimeType.Companion.getMimeType
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
+import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.deleteIfExists
@@ -26,7 +33,7 @@ import kotlin.io.path.deleteIfExists
 
 @OpenApi(
     summary = "Get type of given element",
-    path = "/api/ingest",
+    path = "/api/ingest/{schema}",
     tags = ["Ingest"],
     operationId = "postIngest",
     methods = [HttpMethod.POST],
@@ -41,6 +48,9 @@ import kotlin.io.path.deleteIfExists
             OpenApiContent(mimeType = "multipart/form-data"),
         ]
     ),
+    pathParams = [
+        OpenApiParam(name = "schema", type = String::class, "Schema to ingest into", required = true),
+    ]
 )
 fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
     /* Upload assets to MinIO. */
@@ -48,21 +58,26 @@ fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executo
 
     val schema = manager.getSchema(context.pathParam("schema"))
 
+    val firstFile = context.uploadedFiles("files")[0].filename()
+
+    val pipeline = chooseIngestPipeline(firstFile)
+
+    val filePath: Path = FileSystems.getDefault().getPath(pipeline)
+
     // TODO asset must be downloaded from minio and checked for mime-type
     // MinIO Source --> source id, name, type, ...
     // not file source but MinIO source in pipeline
-    // inter -> Stream
+    // Intern -> Stream
     // Extern -> Link to MinIO source
     // Enumerator maybe not needed (Pseudo-Enumerator) as only one used
 
     // Thumbnailexporter --> MinIO --> Resolver (?)
 
     /* Construct extraction pipeline */
-    val pipelineName = chooseIngestPipeline(assetIds)
 
-    val pipelineBuilder = schema?.getPipelineBuilder(pipelineName) ?: throw ErrorStatusException(
+    val pipelineBuilder = schema?.getPipelineBuilder(pipeline) ?: throw ErrorStatusException(
         400,
-        "Invalid request: Pipeline '$pipelineName' does not exist."
+        "Invalid request: Pipeline '$pipeline' not valid."
     )
 
     val filestream: MutableList<Path> = mutableListOf()
@@ -71,33 +86,40 @@ fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executo
     val basePath = Path.of("upload/$uuid/")
 
     try {/* Handle uploaded file. */
-        context.uploadedFiles("data").forEach { uploadedFile ->
+        context.uploadedFiles("files").forEach { uploadedFile ->
             val path = Path.of("$basePath/${uploadedFile.filename()}")
             FileUtil.streamToFile(uploadedFile.content(), path.toString())
             filestream.add(path)
         }
+
+        // Debug statements -> TODO delete when working
+        filestream.forEach { filePath ->
+            println("File in filestream: $filePath")
+        }
+
         val stream = filestream.stream()
 
-        val pipeline = pipelineBuilder.getApiPipeline(stream)/* Schedule pipeline and return job ID. */
-        val jobId = executor.extractAsync(pipeline)
+        val p = pipelineBuilder.getApiPipeline(stream)/* Schedule pipeline and return job ID. */
+        val jobId = executor.extractAsync(p)
         context.json(IngestStatus(jobId.toString(), assetIds.map { it.toString() }, System.currentTimeMillis()))
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")
     } finally {
-        filestream.forEach { file -> file.deleteIfExists() }
-        basePath.deleteIfExists()
+        /*filestream.forEach { file -> file.deleteIfExists() }
+        basePath.deleteIfExists()*/
     }
 }
 
-fun chooseIngestPipeline(assetIds: List<UUID>): String {
+fun chooseIngestPipeline(assetIds: String): String {
     // TODO change from MimeType to FileEndings --> specify which types are supported
-    val mimeTypes: List<MimeType?> = assetIds.map { getMimeType(it.toString()) }
+    val fileExtension = assetIds.substringAfterLast('.').lowercase(Locale.getDefault())
 
-    return when {
-        mimeTypes.any { it?.mimeType.equals("image/") } -> "ImagePipeline.json"
-        mimeTypes.any { it?.mimeType.equals("video/") } -> "VideoPipeline.json"
-        mimeTypes.any { it?.mimeType.equals("application/") } -> "Model3dPipeline.json"
-        else -> throw ErrorStatusException(400, "Mime-Type unknown: $mimeTypes")
+    // Using FileEnding to get the object type
+    return when (val objectType = FileEnding.objectType(fileExtension)) {
+        "image" -> "Image"
+        "video" -> "Video"
+        "3d" -> "M3D"
+        else -> throw ErrorStatusException(400, "File type is unknown to the system: $objectType")
     }
 }
 
@@ -187,6 +209,7 @@ fun ingestAbort(context: Context, manager: SchemaManager, executor: ExecutionSer
 
  */
 private fun uploadAssets(ctx: Context, minio: MinioClient): List<UUID> = ctx.uploadedFiles("files").map { file ->
+    // TODO add original name
     val assetId = UUID.randomUUID()
     try {
         file.content().use { input ->

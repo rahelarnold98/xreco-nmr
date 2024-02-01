@@ -24,8 +24,8 @@ import io.javalin.apibuilder.ApiBuilder.path
 fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer, minio: MinioClient): Javalin =  this.routes  {
     path("api") {
         /* Endpoints related to data ingest. */
-        ApiBuilder.post("ingest") { ingest(it, minio, manager, runtime) }
         path("ingest") {
+            ApiBuilder.post("{schema}") { ingest(it, minio, manager, runtime) }
             path("{jobId}") {
                 ApiBuilder.get("status") { ingestStatus(it, manager, runtime) }
                 ApiBuilder.delete("abort") { ingestAbort(it, manager, runtime) }

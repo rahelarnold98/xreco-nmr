@@ -29,7 +29,9 @@ fun main(args: Array<String>) {
     val manager = SchemaManager()
     manager.load(config.schema)
 
-    /* Initialize retrieval runtime. */
+    manager.getSchema("xreco")?.connection?.getRetrievableInitializer()
+
+    /* Execution server singleton for this instance. */
     val executor = ExecutionServer()
 
     /* Initialize MinIO client. */
