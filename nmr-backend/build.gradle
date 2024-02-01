@@ -25,9 +25,12 @@ dependencies {
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json-jvm', version: version_kotlinx_json_jvm
 
     /* vitrivr engine. */
-    implementation group: 'org.vitrivr', name: 'vitrivr-engine-base', version: version_vitrivr
+    //implementation group: 'org.vitrivr', name: 'vitrivr-engine-base', version: version_vitrivr
+    implementation group: 'org.vitrivr', name: 'vitrivr-engine-core', version: version_vitrivr
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-index', version: version_vitrivr
+    implementation group: 'org.vitrivr', name: 'vitrivr-engine-plugin-features', version: version_vitrivr
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-query', version: version_vitrivr
+    implementation group: 'org.vitrivr', name: 'vitrivr-engine-plugin-cottontaildb', version: version_vitrivr
     implementation group: 'org.vitrivr', name: 'vitrivr-engine-plugin-m3d', version: version_vitrivr
 
     /* Cottontail DB Driver + gRCP */
