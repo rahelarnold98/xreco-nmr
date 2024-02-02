@@ -1,11 +1,14 @@
 package eu.xreco.nmr.backend.features.certh
 
 
-import org.vitrivr.engine.base.features.external.common.ExternalWithFloatVectorDescriptorAnalyser
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
+import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -13,7 +16,9 @@ import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
-import org.vitrivr.engine.model3d.ModelHandler
+import java.io.*
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -23,16 +28,27 @@ import kotlin.reflect.KClass
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
+class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
 
-
-    // TOFIX: This is a hack to make the analyser work with the new model3d content element
-    override val contentClasses: Set<KClass<out ContentElement<*>>> = setOf(ImageContent::class)
+    override val contentClasses: Set<KClass<out ContentElement<*>>> = setOf(Model3DContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
 
+    /**
+     * Requests the CERTH feature descriptor for the given [ContentElement].
+     *
+     * @param content The [ContentElement] for which to request the CERTH feature descriptor.
+     * @param hostname The hostname of the external feature descriptor service.
+     * @return A list of CERTH feature descriptors.
+     */
+    override fun analyse(content: Model3DContent, hostname: String): FloatVectorDescriptor {
+        val list: List<Float> = executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
+        return FloatVectorDescriptor(UUID.randomUUID(), null, list, true)
+    }
+
     // Size and list for prototypical descriptor
-    override val size = 512
-    override val featureList = List(size) { 0.0f }
+    // TODO change value as soon as the actual size is known
+    val size = 512
+    val featureList = List(size) { 0.0f }
 
     /**
      * Requests the CERTH feature descriptor for the given [ContentElement].
@@ -40,8 +56,65 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @param content The [ContentElement] for which to request the CERTH feature descriptor.
      * @return A list of CERTH feature descriptors.
      */
-    override fun requestDescriptor(content: ContentElement<*>): List<Float> {
-        return httpRequest(content, "http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism")
+    fun requestDescriptor(content: ContentElement<*>): List<Float> {
+        val c = when (content) {
+            is Model3DContent -> content.content
+            else -> throw IllegalArgumentException("Unsupported content type")
+        }
+        return executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
+
+    }
+
+    private fun executeApiRequest(url: String, content: Model3DContent): List<Float> {
+        // Create an HttpURLConnection
+        val connection = URL(url).openConnection() as HttpURLConnection
+
+        try {
+            // Set up the connection for a POST request
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+            // Write the request body to the output stream
+            val outputStream: OutputStream = connection.outputStream
+            val writer = BufferedWriter(OutputStreamWriter(outputStream))
+            writer.write("data=$content") // TODO change to work with irl of min.io
+            writer.flush()
+            writer.close()
+            outputStream.close()
+
+            // Get the response code (optional, but useful for error handling)
+            val responseCode = connection.responseCode
+
+            // Read the response as a JSON string
+            val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
+                val inputStream = BufferedReader(InputStreamReader(connection.inputStream))
+                val response = inputStream.readLine()
+                inputStream.close()
+                response
+            } else {
+                null
+            }
+
+            // Parse the JSON string to List<Float> using Gson
+            return if (responseJson != null) {
+                try {
+                    Json.decodeFromString(ListSerializer(Float.serializer()), responseJson)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    emptyList()
+                }
+            } else {
+                emptyList()
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // TODO Handle exceptions as needed
+        } finally {
+            connection.disconnect()
+        }
+        return emptyList()
     }
 
     /**
@@ -51,6 +124,7 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @return [FloatVectorDescriptor]
      */
     override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), this.featureList, true)
+
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
@@ -64,15 +138,27 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
     override fun newExtractor(
-        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
         input: Operator<Retrievable>,
         context: IndexContext,
         persisting: Boolean,
         parameters: Map<String, Any>
-    ): Extractor<ContentElement<*>, FloatVectorDescriptor> {
+    ): Extractor<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "" }
         return CERTHExtractor(input, field, persisting, this)
     }
+
+
+
+
+    /*override fun newRetrieverForContent(
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
+        content: Collection<Model3DContent>,
+        context: QueryContext
+    ): Retriever<Model3DContent, FloatVectorDescriptor> {
+        TODO("Not yet implemented")
+    }*/
+
 
     /**
      * Generates and returns a new [Retriever] instance for this [CERTH].
@@ -85,11 +171,12 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForContent(
-        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
-        content: Collection<ContentElement<*>>,
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
+        content: Collection<Model3DContent>,
         context: QueryContext
-    ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
-        return this.newRetrieverForDescriptors(field, this.processContent(content), context)
+    ): Retriever<Model3DContent, FloatVectorDescriptor> {
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+        return this.newRetrieverForDescriptors(field, content.map { this.analyse(it, host) }, context)
     }
 
     /**
@@ -103,10 +190,10 @@ class CERTH : ExternalWithFloatVectorDescriptorAnalyser<ContentElement<*>>() {
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForDescriptors(
-        field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
         descriptors: Collection<FloatVectorDescriptor>,
         context: QueryContext
-    ): Retriever<ContentElement<*>, FloatVectorDescriptor> {
+    ): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { }
         return CERTHRetriever(field, descriptors.first(), context)
     }

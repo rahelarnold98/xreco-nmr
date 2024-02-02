@@ -7,6 +7,7 @@ import org.vitrivr.engine.base.features.averagecolor.AverageColorRetriever
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.Model3DContent
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.Distance
@@ -27,10 +28,10 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @version 1.0.0
  */
 class CERTHRetriever(
-    field: Schema.Field<ContentElement<*>, FloatVectorDescriptor>,
+    field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
     query: FloatVectorDescriptor,
     context: QueryContext
-) : AbstractRetriever<ContentElement<*>, FloatVectorDescriptor>(field, query, context) {
+) : AbstractRetriever<Model3DContent, FloatVectorDescriptor>(field, query, context) {
 
     companion object {
         fun scoringFunction(retrieved: Retrieved.RetrievedWithDistance): Float = 1f - retrieved.distance
