@@ -105,8 +105,8 @@ fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executo
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")
     } finally {
-        /*filestream.forEach { file -> file.deleteIfExists() }
-        basePath.deleteIfExists()*/
+        filestream.forEach { file -> file.deleteIfExists() }
+        basePath.deleteIfExists()
     }
 }
 
