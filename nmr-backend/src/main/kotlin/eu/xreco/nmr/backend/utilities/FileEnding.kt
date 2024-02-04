@@ -1,16 +1,19 @@
 package eu.xreco.nmr.backend.utilities
 
+import org.vitrivr.engine.core.source.MediaType
+
+
 object FileEnding {
     private val endingMap = mapOf(
-        "jpg" to "image",
-        "jpeg" to "image",
-        "png" to "image",
-        "gif" to "image",
-        "mp4" to "video",
-        "mov" to "video",
-        "obj" to "3d",
-        "gltf" to "3d"
+        "jpg" to MediaType.IMAGE,
+        "jpeg" to MediaType.IMAGE,
+        "png" to MediaType.IMAGE,
+        "gif" to MediaType.IMAGE,
+        "mp4" to MediaType.VIDEO,
+        "mov" to MediaType.VIDEO,
+        "obj" to MediaType.MESH,
+        "gltf" to MediaType.MESH,
     )
 
-    fun objectType(fileExtension: String) = endingMap[fileExtension] ?: "unknown"
+    fun objectType(fileExtension: String) = endingMap[fileExtension] ?: throw IllegalArgumentException("File ending not supported")
 }

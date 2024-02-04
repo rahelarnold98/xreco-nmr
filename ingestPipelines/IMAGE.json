@@ -5,7 +5,7 @@
     "resolverFactory": "DiskResolver"
   },
   "enumerator": {
-    "name": "ApiEnumerator",
+    "name": "ChannelEnumerator",
     "parameters": {
       "depth": "5",
       "mediaTypes": "IMAGE"
@@ -16,19 +16,17 @@
         "name": "PassThroughSegmenter",
         "aggregators": [
           {
-            "name": "AverageImageContentAggregator",
+            "name": "FirstContentAggregator",
             "nextExtractor": {
               "fieldName": "averagecolor",
               "nextExporter": {
                 "name": "ThumbnailExporter",
                 "exporterName": "thumbnail",
-                "nextExtractor": {
-                  "fieldName": "file",
                   "nextExtractor": {
                     "fieldName": "time"
                   }
                 }
-              }
+
             }
           }
         ]

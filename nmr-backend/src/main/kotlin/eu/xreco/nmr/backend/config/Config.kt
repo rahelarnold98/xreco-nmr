@@ -30,13 +30,13 @@ data class Config(
 
         fields = listOf(
             FieldConfig("file", "FileSourceMetadata"),
-            //FieldConfig("video", "VideoSourceMetadata"),
+            FieldConfig("video", "VideoSourceMetadata"),
             FieldConfig("time", "TemporalMetadata"),
             FieldConfig("averagecolor", "AverageColor"),
-            //FieldConfig("clip", "CLIP", mapOf("host" to "http://localhost:8888/" )),
-            //FieldConfig("sphericalHarmonics", "SphericalHarmonics")
-            // TODO add landmarks, cdva (?) and CERTH feature as soon as ready
-            //FieldConfig("certh", "CERTH", mapOf("host" to "http://160.40.53.193:8000")),
+            FieldConfig("clip", "CLIP", mapOf("host" to "http://localhost:8888/" )),
+            // FieldConfig("sphericalharmonics", "SphericalHarmonics")
+            // TODO add landmarks and CERTH feature as soon as ready
+            // FieldConfig("certh", "CERTH", mapOf("host" to "http://160.40.53.193:8000")),
             //FieldConfig("landmark", "Landmark")
         ),
 
@@ -48,9 +48,9 @@ data class Config(
             )
         ),
         extractionPipelines = listOf(
-            PipelineConfig("Image", "./ingestPipelines/Image.json"),
-            PipelineConfig("Video", "./ingestPipelines/Video.json"),
-            //PipelineConfig("M3D", "./ingestPipelines/M3D.json"),
+            PipelineConfig("IMAGE", "./ingestPipelines/IMAGE.json"),
+            PipelineConfig("VIDEO", "./ingestPipelines/VIDEO.json"),
+            //PipelineConfig("MESH", "./ingestPipelines/MESH.json"),
         )
     ),
 

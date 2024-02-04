@@ -1,0 +1,28 @@
+{
+  "schema": "xreco",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "DiskResolver"
+  },
+  "enumerator": {
+    "name": "ApiEnumerator",
+    "parameters": {
+      "depth": "5",
+      "mediaTypes": "MESH"
+    },
+    "next": {
+      "name": "MeshDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "FirstContentAggregator",
+            "nextExtractor": {
+              "fieldName": "sphericalHarmonics"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

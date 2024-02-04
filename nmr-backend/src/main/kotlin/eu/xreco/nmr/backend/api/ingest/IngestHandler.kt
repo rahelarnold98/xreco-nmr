@@ -1,6 +1,7 @@
 package eu.xreco.nmr.backend.api.ingest
 
 import eu.xreco.nmr.backend.config.MinioConfig
+import eu.xreco.nmr.backend.minio.MinioSource
 import eu.xreco.nmr.backend.model.api.ingest.IngestStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
@@ -18,8 +19,10 @@ import org.vitrivr.engine.core.config.pipeline.execution.ExecutionStatus
 import org.vitrivr.engine.core.model.content.element.AudioContent
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
+import org.vitrivr.engine.core.source.MediaType
 import org.vitrivr.engine.core.source.file.MimeType
 import org.vitrivr.engine.core.source.file.MimeType.Companion.getMimeType
+import org.vitrivr.engine.index.enumerate.ChannelEnumerator
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -62,8 +65,6 @@ fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executo
 
     val pipeline = chooseIngestPipeline(firstFile)
 
-    val filePath: Path = FileSystems.getDefault().getPath(pipeline)
-
     // TODO asset must be downloaded from minio and checked for mime-type
     // MinIO Source --> source id, name, type, ...
     // not file source but MinIO source in pipeline
@@ -80,34 +81,19 @@ fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executo
         "Invalid request: Pipeline '$pipeline' not valid."
     )
 
-    val filestream: MutableList<Path> = mutableListOf()
-    // folder with threadId to avoid deleting files from other threads
-    val uuid = UUID.randomUUID()
-    val basePath = Path.of("upload/$uuid/")
-
-    try {/* Handle uploaded file. */
-        context.uploadedFiles("files").forEach { uploadedFile ->
-            val path = Path.of("$basePath/${uploadedFile.filename()}")
-            FileUtil.streamToFile(uploadedFile.content(), path.toString())
-            filestream.add(path)
+        val sources = assetIds.map {
+            MinioSource(it, minio, MinioConfig.ASSETS_BUCKET)
         }
 
-        // Debug statements -> TODO delete when working
-        filestream.forEach { filePath ->
-            println("File in filestream: $filePath")
+        val p = pipelineBuilder.getPipeline()/* Schedule pipeline and return job ID. */
+        val root = p.getLeaves().first().root()
+        if (root is ChannelEnumerator.Instance){
+            val jobId = executor.extractAsync(p)
+            for (source in sources){
+                root.send(source)
+            }
+            context.json(IngestStatus(jobId.toString(), assetIds.map { it.toString() }, System.currentTimeMillis()))
         }
-
-        val stream = filestream.stream()
-
-        val p = pipelineBuilder.getApiPipeline(stream)/* Schedule pipeline and return job ID. */
-        val jobId = executor.extractAsync(p)
-        context.json(IngestStatus(jobId.toString(), assetIds.map { it.toString() }, System.currentTimeMillis()))
-    } catch (e: Exception) {
-        throw ErrorStatusException(400, "Invalid request: ${e.message}")
-    } finally {
-        filestream.forEach { file -> file.deleteIfExists() }
-        basePath.deleteIfExists()
-    }
 }
 
 fun chooseIngestPipeline(assetIds: String): String {
@@ -115,12 +101,7 @@ fun chooseIngestPipeline(assetIds: String): String {
     val fileExtension = assetIds.substringAfterLast('.').lowercase(Locale.getDefault())
 
     // Using FileEnding to get the object type
-    return when (val objectType = FileEnding.objectType(fileExtension)) {
-        "image" -> "Image"
-        "video" -> "Video"
-        "3d" -> "M3D"
-        else -> throw ErrorStatusException(400, "File type is unknown to the system: $objectType")
-    }
+    return  FileEnding.objectType(fileExtension).toString()
 }
 
 @OpenApi(
@@ -219,7 +200,7 @@ private fun uploadAssets(ctx: Context, minio: MinioClient): List<UUID> = ctx.upl
                         mapOf(
                             "filename" to file.filename(),
                             "timestamp" to System.currentTimeMillis().toString(),
-                        )
+                            "type" to FileEnding.objectType(file.extension().replace(".","")).toString())
                     ).stream(input, file.size(), -1).build()
             )
         }
