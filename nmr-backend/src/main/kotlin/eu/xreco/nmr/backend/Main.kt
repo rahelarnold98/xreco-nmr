@@ -14,6 +14,7 @@ import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import io.minio.MinioClient
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
+import org.vitrivr.engine.core.database.Initializer
 
 /** Version of NMR Backend API. */
 const val VERSION = "1.0.0"
@@ -29,7 +30,25 @@ fun main(args: Array<String>) {
     val manager = SchemaManager()
     manager.load(config.schema)
 
+    val schema = manager.getSchema("xreco") ?: throw IllegalStateException("Schema 'xreco' not found.")
     manager.getSchema("xreco")?.connection?.getRetrievableInitializer()
+
+    /* Init Database */
+    //val schema = this@SchemaCommand.schema
+    var initialized = 0
+    var initializer: Initializer<*> = schema.connection.getRetrievableInitializer()
+    if (!initializer.isInitialized()) {
+        initializer.initialize()
+        initialized += 1
+    }
+    for (field in schema.fields()) {
+        initializer = field.getInitializer()
+        if (!initializer.isInitialized()) {
+            initializer.initialize()
+            initialized += 1
+        }
+    }
+    println("Successfully initialized schema '${schema.name}'; created $initialized entities.")
 
     /* Execution server singleton for this instance. */
     val executor = ExecutionServer()
