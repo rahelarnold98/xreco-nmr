@@ -15,5 +15,5 @@ object FileEnding {
         "gltf" to MediaType.MESH,
     )
 
-    fun objectType(fileExtension: String) = endingMap[fileExtension] ?: throw IllegalArgumentException("File ending not supported")
+    fun objectType(fileExtension: String) = this.endingMap[fileExtension] ?: throw IllegalArgumentException("File ending not supported.")
 }

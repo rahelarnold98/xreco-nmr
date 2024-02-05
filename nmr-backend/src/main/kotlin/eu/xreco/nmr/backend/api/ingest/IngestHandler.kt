@@ -1,44 +1,34 @@
 package eu.xreco.nmr.backend.api.ingest
 
+import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.config.MinioConfig
 import eu.xreco.nmr.backend.minio.MinioSource
+import eu.xreco.nmr.backend.minio.MinioSource.Companion.FILENAME_TAG_NAME
+import eu.xreco.nmr.backend.minio.MinioSource.Companion.MEDIA_TYPE_TAG_NAME
+import eu.xreco.nmr.backend.minio.MinioSource.Companion.MIME_TYPE_TAG_NAME
+import eu.xreco.nmr.backend.minio.MinioSource.Companion.TIMESTAMP_TAG_NAME
 import eu.xreco.nmr.backend.model.api.ingest.IngestStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import eu.xreco.nmr.backend.model.api.status.SuccessStatus
 import eu.xreco.nmr.backend.utilities.FileEnding
+import eu.xreco.nmr.backend.utilities.MimeTypeHelper
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import io.javalin.util.FileUtil
-import io.minio.GetObjectArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.errors.ErrorResponseException
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionStatus
-import org.vitrivr.engine.core.model.content.element.AudioContent
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.core.source.MediaType
-import org.vitrivr.engine.core.source.file.MimeType
-import org.vitrivr.engine.core.source.file.MimeType.Companion.getMimeType
-import org.vitrivr.engine.index.enumerate.ChannelEnumerator
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStream
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
+import org.vitrivr.engine.index.enumerate.ListEnumerator
 import java.util.*
-import kotlin.io.path.deleteIfExists
-
-
 
 @OpenApi(
-    summary = "Get type of given element",
-    path = "/api/ingest/{schema}",
+    summary = "Ingest one (or multiple) images into the XRECO NMR backend.",
+    path = "/api/ingest/image",
     tags = ["Ingest"],
-    operationId = "postIngest",
+    operationId = "postIngestImage",
     methods = [HttpMethod.POST],
     responses = [
         OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
@@ -46,62 +36,58 @@ import kotlin.io.path.deleteIfExists
         OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ],
-    requestBody = OpenApiRequestBody(
-        content = [
-            OpenApiContent(mimeType = "multipart/form-data"),
-        ]
-    ),
-    pathParams = [
-        OpenApiParam(name = "schema", type = String::class, "Schema to ingest into", required = true),
-    ]
+    requestBody = OpenApiRequestBody(content = [OpenApiContent(mimeType = "multipart/form-data")])
 )
-fun ingest(context: Context, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
-    /* Upload assets to MinIO. */
-    val assetIds = uploadAssets(context, minio)
+fun ingestImage(context: Context, config: Config, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
+    /* Extract schema. */
+    val schema = manager.getSchema(config.schema.name) ?: throw ErrorStatusException(404, "Schema '${config.schema.name}' does not exist.")
 
-    val schema = manager.getSchema(context.pathParam("schema"))
-
-    val firstFile = context.uploadedFiles("files")[0].filename()
-
-    val pipeline = chooseIngestPipeline(firstFile)
-
-    // TODO asset must be downloaded from minio and checked for mime-type
-    // MinIO Source --> source id, name, type, ...
-    // not file source but MinIO source in pipeline
-    // Intern -> Stream
-    // Extern -> Link to MinIO source
-    // Enumerator maybe not needed (Pseudo-Enumerator) as only one used
-
-    // Thumbnailexporter --> MinIO --> Resolver (?)
+    /* Upload assets to MinIO and choose pipeline */
+    val assets = uploadAssets(context, minio)
 
     /* Construct extraction pipeline */
-
-    val pipelineBuilder = schema?.getPipelineBuilder(pipeline) ?: throw ErrorStatusException(
-        400,
-        "Invalid request: Pipeline '$pipeline' not valid."
-    )
-
-        val sources = assetIds.map {
-            MinioSource(it, minio, MinioConfig.ASSETS_BUCKET)
+    val pipeline = schema.getPipelineBuilder("IMAGE").getPipeline()/* Schedule pipeline and return job ID. */
+    val root = pipeline.getLeaves().first().root()
+    if (root is ListEnumerator.Instance){
+        for (source in assets){
+            root.add(source)
         }
-
-        val p = pipelineBuilder.getPipeline()/* Schedule pipeline and return job ID. */
-        val root = p.getLeaves().first().root()
-        if (root is ChannelEnumerator.Instance){
-            val jobId = executor.extractAsync(p)
-            for (source in sources){
-                root.send(source)
-            }
-            context.json(IngestStatus(jobId.toString(), assetIds.map { it.toString() }, System.currentTimeMillis()))
-        }
+        val jobId = executor.extractAsync(pipeline)
+        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+    }
 }
 
-fun chooseIngestPipeline(assetIds: String): String {
-    // TODO change from MimeType to FileEndings --> specify which types are supported
-    val fileExtension = assetIds.substringAfterLast('.').lowercase(Locale.getDefault())
+@OpenApi(
+    summary = "Ingest one (or multiple) videos into the XRECO NMR backend.",
+    path = "/api/ingest/video",
+    tags = ["Ingest"],
+    operationId = "postIngestVideo",
+    methods = [HttpMethod.POST],
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
+        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+    ],
+    requestBody = OpenApiRequestBody(content = [OpenApiContent(mimeType = "multipart/form-data"), ])
+)
+fun ingestVideo(context: Context, config: Config, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
+    /* Extract schema. */
+    val schema = manager.getSchema(config.schema.name) ?: throw ErrorStatusException(404, "Schema '${config.schema.name}' does not exist.")
 
-    // Using FileEnding to get the object type
-    return  FileEnding.objectType(fileExtension).toString()
+    /* Upload assets to MinIO and choose pipeline */
+    val assets = uploadAssets(context, minio)
+
+    /* Construct extraction pipeline */
+    val pipeline = schema.getPipelineBuilder("VIDEO").getPipeline()/* Schedule pipeline and return job ID. */
+    val root = pipeline.getLeaves().first().root()
+    if (root is ListEnumerator.Instance){
+        for (source in assets){
+            root.add(source)
+        }
+        val jobId = executor.extractAsync(pipeline)
+        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+    }
 }
 
 @OpenApi(
@@ -126,27 +112,12 @@ fun ingestStatus(context: Context, manager: SchemaManager, executor: ExecutionSe
     } catch (e: Exception) {
         throw ErrorStatusException(400, "Invalid request: ${e.message}")
     }
-
-    val status = executor.status(jobId)
-
-    when (status) {
-        ExecutionStatus.RUNNING -> {
-            context.status(200).json(IngestStatus(jobId.toString(), emptyList(), System.currentTimeMillis()))
-        }
-
-        ExecutionStatus.COMPLETED -> {
-            context.status(200).json(SuccessStatus("Ingest job completed"))
-        }
-
-        ExecutionStatus.FAILED -> {
-            context.status(500).json(ErrorStatus(500, "Ingest job failed"))
-        }
-
-        ExecutionStatus.UNKNOWN -> {
-            context.status(404).json(ErrorStatus(404, "Ingest job not found"))
-        }
+    when (val status = executor.status(jobId)) {
+        ExecutionStatus.RUNNING -> context.status(200).json(IngestStatus(jobId.toString(), emptyList(), System.currentTimeMillis()))
+        ExecutionStatus.COMPLETED -> context.status(200).json(SuccessStatus("Ingest job completed"))
+        ExecutionStatus.FAILED -> context.status(500).json(ErrorStatus(500, "Ingest job failed"))
+        ExecutionStatus.UNKNOWN ->  context.status(404).json(ErrorStatus(404, "Ingest job not found"))
     }
-
 }
 
 
@@ -181,63 +152,34 @@ fun ingestAbort(context: Context, manager: SchemaManager, executor: ExecutionSer
     }
 }
 
-
 /**
  * This method assigns every uploaded asset a unique [UUID] and tries to upload it to the min.io server.
+ * Returns a [MinioSource] upon success, which can be processed by the extraction pipeline.
  *
  * @param ctx The [Context] of the request.
  * @param minio The [MinioClient].
-
+ * @return [List] of [MinioSource]s.
  */
-private fun uploadAssets(ctx: Context, minio: MinioClient): List<UUID> = ctx.uploadedFiles("files").map { file ->
-    // TODO add original name
+private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> = ctx.uploadedFiles("files").map { file ->
     val assetId = UUID.randomUUID()
+    val extension = file.extension().replace(".","")
     try {
         file.content().use { input ->
             minio.putObject(
                 PutObjectArgs.builder().bucket(MinioConfig.ASSETS_BUCKET).`object`(assetId.toString())
-                    .contentType(file.contentType()).headers(
+                    .contentType(file.contentType())
+                    .tags(
                         mapOf(
-                            "filename" to file.filename(),
-                            "timestamp" to System.currentTimeMillis().toString(),
-                            "type" to FileEnding.objectType(file.extension().replace(".","")).toString())
+                            FILENAME_TAG_NAME to file.filename(),
+                            MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
+                            MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
+                            TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),
+                        )
                     ).stream(input, file.size(), -1).build()
             )
         }
-        assetId
+        MinioSource(assetId, MinioConfig.ASSETS_BUCKET, minio)
     } catch (e: ErrorResponseException) {
         throw ErrorStatusException(500, "Failed to upload asset ${file.filename()} due to a min.io error: ${e.message}")
     }
 }
-
-
-/**
- * This method downloads a file using its unique [UUID] from the min.io server.
- *
- * @param minio The [MinioClient].
- * @param assetId The [UUID] of the asset to download.
-*/
-private fun downloadAsset(minio: MinioClient, assetId: UUID): ByteArray {
-    try {
-        val getObjectResponse: InputStream = minio.getObject(
-            GetObjectArgs.builder()
-                .bucket(MinioConfig.ASSETS_BUCKET)
-                .`object`(assetId.toString())
-                .build()
-        )
-
-        val outputStream = ByteArrayOutputStream()
-
-        getObjectResponse.use { input ->
-            outputStream.use { output ->
-                input.transferTo(output)
-            }
-        }
-
-        return outputStream.toByteArray()
-
-    } catch (e: ErrorResponseException) {
-        throw ErrorStatusException(500, "Failed to download asset $assetId from min.io: ${e.message}")
-    }
-}
-

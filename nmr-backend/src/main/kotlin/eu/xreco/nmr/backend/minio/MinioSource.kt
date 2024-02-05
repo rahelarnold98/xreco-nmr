@@ -10,28 +10,65 @@ import org.vitrivr.engine.core.source.Source
 import org.vitrivr.engine.core.source.SourceId
 import java.io.InputStream
 import java.lang.IllegalArgumentException
-import java.util.*
 
+/**
+ *  A [Source] implementation that is backed by a min.io BLOB store.
+ *
+ *  @author Rahel Arnold
+ *  @author Ralph Gasser
+ *  @version 1.0.0
+ */
 data class MinioSource(
-    override val sourceId: SourceId, val minio: MinioClient, val bucket: String
+    /** [SourceId] associated with this [MinioSource]. Used for lookup in minio. */
+    override val sourceId: SourceId,
+
+    /** The name of the min.io bucket associated with this [MinioSource]. */
+    val bucket: String,
+
+    /** The [MinioClient] used to connect to min.io. */
+    val minio: MinioClient
 ) : Source {
-    override val metadata: MutableMap<String, Any> = mutableMapOf()
+    companion object {
+        const val FILENAME_TAG_NAME = "filename"
+        const val TIMESTAMP_TAG_NAME = "timestamp"
+        const val MEDIA_TYPE_TAG_NAME = "media_type"
+        const val MIME_TYPE_TAG_NAME = "mime_type"
+    }
 
-    private val tags: Tags by lazy {  minio.getObjectTags(
-        GetObjectTagsArgs.builder().bucket(this.bucket).`object`(this.sourceId.toString()).build()) }
+    /** The [Tags] associated with this [MinioSource]. Are used */
+    private val tags: Tags by lazy {
+        this.minio.getObjectTags(
+            GetObjectTagsArgs.builder().bucket(this.bucket).`object`(this.sourceId.toString()).build()
+        ) ?: Tags()
+    }
 
+    /** [MutableMap] of metadata items associated with this [MinioSource]. */
+    override val metadata: MutableMap<String, Any> by lazy {
+        this.tags.get().toMutableMap()
+    }
+
+    /** The name of this [MinioSource]. */
     override val name: String
-        get() = tags.get()["filename"]?: throw IllegalArgumentException("Filename not defined")
+        get() = this.tags.get()[FILENAME_TAG_NAME]?: ""
 
-    override val timestamp: Long
-        get() = tags.get()["timestamp"]?.toLongOrNull() ?: System.currentTimeMillis()
+    /** The mime type of this [MinioSource]. */
+    val mimeType: String
+        get() = this.tags.get()[MIME_TYPE_TAG_NAME]?: ""
 
-
+    /** The [MediaType] associated with this [MinioSource]. */
     override val type: MediaType
-        get() = tags.get()["type"]?.let { MediaType.valueOf(it) } ?: throw IllegalArgumentException("Unkown media type")
+        get() = this.tags.get()[MEDIA_TYPE_TAG_NAME]?.let { MediaType.valueOf(it) } ?: throw IllegalArgumentException("Unknown media type")
 
+    /** The name of this [MinioSource]. */
+    override val timestamp: Long
+        get() = this.tags.get()[TIMESTAMP_TAG_NAME]?.toLongOrNull() ?: System.currentTimeMillis()
 
-    override fun newInputStream(): InputStream = minio.getObject(
+    /**
+     * Loads the asset from minio and returns it as an [InputStream].
+     *
+     * @return [InputStream] of the object.
+     */
+    override fun newInputStream(): InputStream = this.minio.getObject(
         GetObjectArgs.builder().bucket(MinioConfig.ASSETS_BUCKET).`object`(this.sourceId.toString()).build()
     )
 }

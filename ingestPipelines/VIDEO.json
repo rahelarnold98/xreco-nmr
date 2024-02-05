@@ -5,7 +5,7 @@
     "resolverFactory": "DiskResolver"
   },
   "enumerator": {
-    "name": "ApiEnumerator",
+    "name": "ListEnumerator",
     "parameters": {
       "depth": "5",
       "mediaTypes": "VIDEO"

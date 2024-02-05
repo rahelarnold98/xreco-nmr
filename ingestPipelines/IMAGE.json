@@ -5,7 +5,7 @@
     "resolverFactory": "DiskResolver"
   },
   "enumerator": {
-    "name": "ChannelEnumerator",
+    "name": "ListEnumerator",
     "parameters": {
       "depth": "5",
       "mediaTypes": "IMAGE"
