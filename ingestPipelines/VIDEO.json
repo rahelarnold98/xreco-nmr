@@ -15,12 +15,12 @@
       "nextSegmenter": {
         "name": "FixedDurationSegmenter",
         "parameters": {
-          "duration": "2",
+          "duration": "10",
           "lookAheadTime": "1"
         },
         "aggregators": [
           {
-            "name": "AverageImageAggregator",
+            "name": "AverageImageContentAggregator",
             "nextExtractor": {
               "fieldName": "clip",
               "nextExporter": {
