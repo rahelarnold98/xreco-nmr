@@ -37,7 +37,7 @@ data class Config(
             // FieldConfig("sphericalharmonics", "SphericalHarmonics")
             // TODO add landmarks and CERTH feature as soon as ready
             // FieldConfig("certh", "CERTH", mapOf("host" to "http://160.40.53.193:8000")),
-            //FieldConfig("landmark", "Landmark")
+            FieldConfig("landmark", "Landmarks")
         ),
 
         exporters = listOf(
