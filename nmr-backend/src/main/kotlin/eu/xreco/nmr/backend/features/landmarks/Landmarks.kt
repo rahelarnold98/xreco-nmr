@@ -30,7 +30,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = LabelDescriptor::class
 
-    private val url = "url"
+    private val url = "https://ep33exn95a.execute-api.eu-west-1.amazonaws.com/extract/landmark\""
 
     /**
      * Generates a prototypical [LabelDescriptor] for this [Landmarks].

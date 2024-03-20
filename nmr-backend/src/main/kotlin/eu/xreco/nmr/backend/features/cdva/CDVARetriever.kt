@@ -1,4 +1,4 @@
-package eu.xreco.nmr.backend.features.lansmark
+package eu.xreco.nmr.backend.features.landmarks
 
 class CDVARetriever {
     //TODO: implement

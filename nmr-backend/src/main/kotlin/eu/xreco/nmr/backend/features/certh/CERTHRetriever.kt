@@ -27,7 +27,7 @@ import org.vitrivr.engine.core.model.retrievable.Retrieved
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTHRetriever(
+/*class CERTHRetriever(
     field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
     query: FloatVectorDescriptor,
     context: QueryContext
@@ -67,3 +67,4 @@ class CERTHRetriever(
         }
     }
 }
+*/

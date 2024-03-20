@@ -49,15 +49,16 @@ data class MinioSource(
 
     /** The name of this [MinioSource]. */
     override val name: String
-        get() = this.tags.get()[FILENAME_TAG_NAME]?: ""
+        get() = this.tags.get()[FILENAME_TAG_NAME] ?: ""
 
     /** The mime type of this [MinioSource]. */
     val mimeType: String
-        get() = this.tags.get()[MIME_TYPE_TAG_NAME]?: ""
+        get() = this.tags.get()[MIME_TYPE_TAG_NAME] ?: ""
 
     /** The [MediaType] associated with this [MinioSource]. */
     override val type: MediaType
-        get() = this.tags.get()[MEDIA_TYPE_TAG_NAME]?.let { MediaType.valueOf(it) } ?: throw IllegalArgumentException("Unknown media type")
+        get() = this.tags.get()[MEDIA_TYPE_TAG_NAME]?.let { MediaType.valueOf(it) }
+            ?: throw IllegalArgumentException("Unknown media type")
 
     /** The name of this [MinioSource]. */
     override val timestamp: Long

@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
+/*class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
 
     override val contentClasses: Set<KClass<out ContentElement<*>>> = setOf(Model3DContent::class)
     override val descriptorClass = FloatVectorDescriptor::class
@@ -198,3 +198,4 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
         return CERTHRetriever(field, descriptors.first(), context)
     }
 }
+*/

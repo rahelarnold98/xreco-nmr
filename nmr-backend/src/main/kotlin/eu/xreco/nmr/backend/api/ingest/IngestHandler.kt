@@ -91,6 +91,39 @@ fun ingestVideo(context: Context, config: Config, minio: MinioClient, manager: S
 }
 
 @OpenApi(
+    summary = "Ingest one (or multiple) models into the XRECO NMR backend.",
+    path = "/api/ingest/model",
+    tags = ["Ingest"],
+    operationId = "postIngestModel",
+    methods = [HttpMethod.POST],
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(IngestStatus::class)]),
+        OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
+    ],
+    requestBody = OpenApiRequestBody(content = [OpenApiContent(mimeType = "multipart/form-data")])
+)
+fun ingestModel(context: Context, config: Config, minio: MinioClient, manager: SchemaManager, executor: ExecutionServer) {
+    /* Extract schema. */
+    val schema = manager.getSchema(config.schema.name) ?: throw ErrorStatusException(404, "Schema '${config.schema.name}' does not exist.")
+
+    /* Upload assets to MinIO and choose pipeline */
+    val assets = uploadAssets(context, minio)
+
+    /* Construct extraction pipeline */
+    val pipeline = schema.getPipelineBuilder("MESH").getPipeline()/* Schedule pipeline and return job ID. */
+    val root = pipeline.getLeaves().first().root()
+    if (root is ListEnumerator.Instance){
+        for (source in assets){
+            root.add(source)
+        }
+        val jobId = executor.extractAsync(pipeline)
+        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+    }
+}
+
+@OpenApi(
     summary = "Queries the ingest status for the provided job ID.",
     path = "/api/ingest/{jobId}/status",
     tags = ["Ingest"],
@@ -170,7 +203,7 @@ private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> = 
                     .contentType(file.contentType())
                     .tags(
                         mapOf(
-                            FILENAME_TAG_NAME to file.filename(),
+                            FILENAME_TAG_NAME to "/Users/rahelarnold/Documents/vitrivr-engine/vitrivr-engine-plugin-m3d/src/test/resources/bunny.obj",
                             MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
                             MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
                             TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),

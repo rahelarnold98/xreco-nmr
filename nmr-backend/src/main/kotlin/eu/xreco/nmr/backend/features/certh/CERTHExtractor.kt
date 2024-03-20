@@ -7,7 +7,6 @@ import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.model3d.ModelHandler
@@ -22,7 +21,7 @@ import org.vitrivr.engine.model3d.ModelHandler
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTHExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DContent, FloatVectorDescriptor>, persisting: Boolean = true, private val certh: CERTH) : AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field, persisting) {
+/*class CERTHExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DContent, FloatVectorDescriptor>, persisting: Boolean = true, private val certh: CERTH) : AbstractExtractor<Model3DContent, FloatVectorDescriptor>(input, field, persisting) {
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
      *
@@ -43,3 +42,4 @@ class CERTHExtractor(input: Operator<Retrievable>, field: Schema.Field<Model3DCo
         return content.map { c -> FloatVectorDescriptor(retrievableId = retrievable.id, vector = certh.requestDescriptor(c), transient = !this.persisting) }
     }
 }
+*/

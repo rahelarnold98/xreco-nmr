@@ -2,6 +2,7 @@ package eu.xreco.nmr.backend.features.landmarks
 
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.features.AbstractExtractor
+import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
@@ -9,7 +10,8 @@ import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.Ingested
 import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
-import org.vitrivr.engine.core.model.retrievable.decorators.RetrievableWithContent
+import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
@@ -30,11 +32,11 @@ class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<Conte
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
-     *
+     *<
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable is RetrievableWithContent
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -43,13 +45,13 @@ class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<Conte
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
-        check(retrievable is RetrievableWithContent) { "Incoming retrievable is not a retrievable with content. This is a programmer's error!" }
+        check(retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }) { "Incoming retrievable is not a retrievable with content. This is a programmer's error!" }
 
-        val source = (((retrievable as Ingested).relationships as HashSet).toArray()[0] as Relationship).obj.first
-        val content = retrievable.content
+        val source = (((retrievable as Ingested).filteredAttributes(RelationshipAttribute::class.java) as HashSet).toArray()[0] as Relationship).obj.first
+        val content = retrievable.filteredAttributes(ContentAttribute::class.java)
 
         return content.flatMap { c ->
-            val analysisResults = (this.field.analyser as? Landmarks)?.analyseList(c, source) ?: emptyList()
+            val analysisResults = (this.field.analyser as? Landmarks)?.analyseList(c.content, source) ?: emptyList()
             analysisResults.map { result ->
                 result.copy(retrievableId = retrievable.id, transient = !this.persisting)
             }

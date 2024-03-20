@@ -1,9 +1,6 @@
 package eu.xreco.nmr.backend.api
 
-import eu.xreco.nmr.backend.api.ingest.ingestImage
-import eu.xreco.nmr.backend.api.ingest.ingestAbort
-import eu.xreco.nmr.backend.api.ingest.ingestStatus
-import eu.xreco.nmr.backend.api.ingest.ingestVideo
+import eu.xreco.nmr.backend.api.ingest.*
 import eu.xreco.nmr.backend.api.media.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.config.Config
@@ -27,6 +24,7 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
         ApiBuilder.path("ingest") {
             ApiBuilder.post("image") { ingestImage(it, config, minio, manager, runtime) }
             ApiBuilder.post("video") { ingestVideo(it, config, minio, manager, runtime) }
+            ApiBuilder.post("model") { ingestModel(it, config, minio, manager, runtime) }
             ApiBuilder.path("{jobId}") {
                 ApiBuilder.get("status") { ingestStatus(it, manager, runtime) }
                 ApiBuilder.delete("abort") { ingestAbort(it, manager, runtime) }
