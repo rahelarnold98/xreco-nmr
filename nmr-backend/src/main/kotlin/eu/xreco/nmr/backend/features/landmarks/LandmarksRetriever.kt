@@ -3,7 +3,6 @@ package eu.xreco.nmr.backend.features.landmarks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.vitrivr.engine.base.features.averagecolor.AverageColorRetriever
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.ContentElement
@@ -33,7 +32,8 @@ class LandmarksRetriever(field: Schema.Field<ContentElement<*>, LabelDescriptor>
         fun scoringFunction(retrieved: Retrieved): Float {
             val distance = retrieved.filteredAttribute<DistanceAttribute>()?.distance ?: return 0f
             return 1f - distance
-        }    }
+        }
+    }
 
     override fun toFlow(scope: CoroutineScope): Flow<Retrieved> {
         val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000 //TODO get limit
@@ -42,7 +42,7 @@ class LandmarksRetriever(field: Schema.Field<ContentElement<*>, LabelDescriptor>
         val query = LabelQuery(descriptor = this@LandmarksRetriever.query)
         return flow {
             reader.getAll(query).forEach {
-                it.addAttribute(ScoreAttribute(AverageColorRetriever.scoringFunction(it)))
+                it.addAttribute(ScoreAttribute(scoringFunction(it)))
                 emit(
                     it
                 )

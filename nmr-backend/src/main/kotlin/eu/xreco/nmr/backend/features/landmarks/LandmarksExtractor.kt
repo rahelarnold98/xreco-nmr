@@ -45,7 +45,7 @@ class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<Conte
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
-        check(retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }) { "Incoming retrievable is not a retrievable with content. This is a programmer's error!" }
+        check(retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }) { "Incoming retrievable is not a retrievable with IMAGE content. This is a programmer's error!" }
 
         val source = (((retrievable as Ingested).filteredAttributes(RelationshipAttribute::class.java) as HashSet).toArray()[0] as Relationship).obj.first
         val content = retrievable.filteredAttributes(ContentAttribute::class.java)
