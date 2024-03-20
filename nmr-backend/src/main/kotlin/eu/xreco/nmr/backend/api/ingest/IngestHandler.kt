@@ -203,7 +203,6 @@ private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> = 
                     .contentType(file.contentType())
                     .tags(
                         mapOf(
-                            FILENAME_TAG_NAME to "/Users/rahelarnold/Documents/vitrivr-engine/vitrivr-engine-plugin-m3d/src/test/resources/bunny.obj",
                             MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
                             MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
                             TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),
