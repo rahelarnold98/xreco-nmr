@@ -7,7 +7,6 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 import kotlin.FloatArray
 import kotlin.Int
 import kotlin.String

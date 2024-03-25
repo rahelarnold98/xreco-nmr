@@ -11,7 +11,10 @@ import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.core.model.query.Query
+import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
+import org.vitrivr.engine.core.model.types.Value
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
@@ -37,7 +40,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      *
      * @return [LabelDescriptor]
      */
-    override fun prototype(field: Schema.Field<*,*>) = LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), "", 0.0f, true)
+    override fun prototype(field: Schema.Field<*,*>) = LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(""), Value.Float(0.0f), true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [Landmarks].
@@ -73,7 +76,14 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, LabelDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-        return this.newRetrieverForDescriptors(field, content.map { this.analyse(it, host) }, context)
+
+        /* Extract parameters and construct query. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val descriptor = content.map { this.analyse(it, host) }
+        val query = SimpleFulltextQuery(descriptor.first().label, limit = k)
+
+        /* Generate retriever. */
+        return this.newRetrieverForQuery(field, query, context)
     }
 
     /**
@@ -86,9 +96,10 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @return A new [Retriever] instance for this [Landmarks]
      * @throws [UnsupportedOperationException], if this [Landmarks] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForDescriptors(field: Schema.Field<ContentElement<*>, LabelDescriptor>, descriptors: Collection<LabelDescriptor>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, LabelDescriptor>, query: Query, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        return LandmarksRetriever(field, descriptors.first(), context)
+        require(query is SimpleFulltextQuery) { "" }
+        return LandmarksRetriever(field, query, context)
     }
 
     override fun analyse(content: ContentElement<*>, hostname: String): LabelDescriptor {
@@ -107,7 +118,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
             is ImageContent -> {
                 val results = executeImageApiRequest(source)
                 val labelDescriptors: List<LabelDescriptor> = results.map { res ->
-                    LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), res.label, res.confidence, true)
+                    LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
                 }
                 return labelDescriptors
             }

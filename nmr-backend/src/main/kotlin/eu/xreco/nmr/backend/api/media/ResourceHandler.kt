@@ -11,7 +11,6 @@ import io.minio.GetObjectArgs
 import io.minio.MinioClient
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
-import org.vitrivr.engine.query.execution.RetrievalRuntime
 
 @OpenApi(
     summary = "Obtains metadata for the asset identified by the given ID.",
