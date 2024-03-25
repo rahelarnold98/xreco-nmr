@@ -4,6 +4,7 @@ import eu.xreco.nmr.backend.api.ingest.*
 import eu.xreco.nmr.backend.api.media.*
 import eu.xreco.nmr.backend.api.retrieval.*
 import eu.xreco.nmr.backend.config.Config
+import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder
 import io.minio.MinioClient
@@ -19,6 +20,10 @@ import org.vitrivr.engine.core.model.metamodel.SchemaManager
  * @param minio The [MinioClient] instance.
  */
 fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: ExecutionServer, minio: MinioClient): Javalin = this.routes  {
+    /* Obtain schema from configuration. */
+    val schema = manager.getSchema(config.schema.name) ?: throw ErrorStatusException(404, "Schema '${config.schema.name}' does not exist.")
+
+    /* Build API. */
     ApiBuilder.path("api") {
         /* Endpoints related to data ingest. */
         ApiBuilder.path("ingest") {
@@ -33,11 +38,11 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
 
         /* Endpoints related to retrieval- */
         ApiBuilder.path("retrieval") {
-            ApiBuilder.get("lookup/{elementId}/{entity}") { lookup(it, manager, runtime) }
-            ApiBuilder.get("type/{elementId}") { type(it, manager, runtime) }
-            ApiBuilder.get("text/{entity}/{text}/{pageSize}/{page}") { getFulltext(it, manager, runtime) }
-            ApiBuilder.get("similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}") {
-                getSimilar(it, manager, runtime)
+            ApiBuilder.get("lookup/{retrievableId}/{entity}") { lookup(it, schema) }
+            ApiBuilder.get("type/{retrievableId}") { type(it, schema) }
+            ApiBuilder.get("text/{entity}/{retrievableId}/{pageSize}/{page}") { getFulltext(it, schema, runtime) }
+            ApiBuilder.get("similarity/{entity}/{retrievableId}/{pageSize}/{page}") {
+                getSimilar(it, schema, runtime)
             }
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
         }
