@@ -2,7 +2,7 @@
   "schema": "xreco",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver"
+    "resolverFactory": "MinioResolver"
   },
   "enumerator": {
     "name": "ListEnumerator",
@@ -12,28 +12,33 @@
     },
     "next": {
       "name": "VideoDecoder",
-      "nextSegmenter": {
-        "name": "FixedDurationSegmenter",
-        "parameters": {
-          "duration": "10",
-          "lookAheadTime": "1"
-        },
-        "aggregators": [
-          {
-            "name": "AverageImageContentAggregator",
-            "nextExtractor": {
-              "fieldName": "clip",
-              "nextExporter": {
-                "name": "ThumbnailExporter",
-                "exporterName": "thumbnail",
-                "nextExtractor": {
-                  "fieldName": "time"
+      "nextTransformer": {
+        "name": "PassthroughTransformer",
+        "nextSegmenter": {
+          "name": "FixedDurationSegmenter",
+          "parameters": {
+            "duration": "1",
+            "lookAheadTime": "1"
+          },
+          "aggregators": [
+            {
+              "name": "AverageImageContentAggregator",
+              "nextExtractor": {
+                "fieldName": "clip",
+                "nextExporter": {
+                  "name": "ThumbnailExporter",
+                  "exporterName": "thumbnail",
+                  "nextExtractor": {
+                    "fieldName": "file",
+                    "nextExtractor": {
+                      "fieldName": "time"
+                    }
+                  }
                 }
               }
-
             }
-          }
-        ]
+          ]
+        }
       }
     }
   }

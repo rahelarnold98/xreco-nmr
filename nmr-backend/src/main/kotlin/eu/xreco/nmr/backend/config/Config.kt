@@ -1,5 +1,6 @@
 package eu.xreco.nmr.backend.config
 
+import io.minio.MinioClient
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.config.*
 import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics
@@ -45,7 +46,7 @@ data class Config(
             ExporterConfig(
                 "thumbnail",
                 "ThumbnailExporter",
-                ResolverConfig("DiskResolver")
+                ResolverConfig("MinioResolver")
             )
         ),
         extractionPipelines = listOf(
@@ -62,3 +63,16 @@ data class Config(
         secretKey = (System.getenv("MINIO_SECRET_KEY") ?: "nmr-backend")
     )
 )
+
+/**
+ * Singleton object to hold the MinioClient instance globally.
+ */
+object MinioClientSingleton {
+    val minioClient: MinioClient by lazy {
+        val minioConfig = Config().minio
+        MinioClient.builder()
+            .endpoint(minioConfig.url)
+            .credentials(minioConfig.accessKey, minioConfig.secretKey)
+            .build()
+    }
+}
