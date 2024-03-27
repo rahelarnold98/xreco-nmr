@@ -22,16 +22,19 @@
           },
           "aggregators": [
             {
-              "name": "AverageImageContentAggregator",
+              "name": "CenterContentAggregator",
               "nextExtractor": {
-                "fieldName": "landmark",
+                "fieldName": "clip",
                 "nextExporter": {
                   "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",
                   "nextExtractor": {
                     "fieldName": "file",
                     "nextExtractor": {
-                      "fieldName": "time"
+                      "fieldName": "time",
+                      "nextExtractor": {
+                        "fieldName": "landmark"
+                      }
                     }
                   }
                 }
