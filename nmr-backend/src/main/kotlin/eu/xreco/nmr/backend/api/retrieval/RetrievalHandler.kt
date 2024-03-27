@@ -13,15 +13,14 @@ import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadata
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
+import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
 import org.vitrivr.engine.query.model.api.input.TextInputData
-import org.vitrivr.engine.query.model.api.input.VectorInputData
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import org.vitrivr.engine.query.parsing.QueryParser
-import java.math.BigDecimal
 import java.util.*
 import kotlin.FloatArray
 import kotlin.Int
@@ -94,15 +93,14 @@ fun type(context: Context, schema: Schema) {
 
 @OpenApi(
     summary = "Issues a fulltext query.",
-    path = "/api/retrieval/text/{field}/{text}/{pageSize}/{page}",
+    path = "/api/retrieval/text/{field}/{text}/{pageSize}",
     tags = [Retrieval],
     operationId = "getSearchFulltext",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query.", required = true),
+        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query (i.e., the feature to compare).", required = true),
         OpenApiParam(name = "text", type = String::class, description = "Text to search for.", required = true),
-        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of a single results page.", required = true),
-        OpenApiParam(name = "page", type = Int::class, description = "Requested page of results. Zero-based index (first page = 0).", required = true)
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
@@ -117,9 +115,6 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
     val fieldName = context.pathParam("field")
     val text = context.pathParam("text")
     val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
-
-    // TODO: Number of pages. */
 
     /* Construct and parse query. */
     val query = InformationNeedDescription(
@@ -135,27 +130,28 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(page, pageSize, count = 0L, items = executor.query(retriever).mapNotNull { retrieved ->
+    val results = RetrievalResult(items = executor.query(retriever).mapNotNull { retrieved ->
+        val source = retrieved.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.filter { it.pred == "partOf" }.firstOrNull()?.obj ?: return@mapNotNull null
         val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+
         val startSeconds = temporal?.startNs?.let { it.value / 10e9 }
         val endSeconds = temporal?.endNs?.let { it.value / 10e9 }
         val score = retrieved.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble() ?: return@mapNotNull null
-        ScoredMediaItem(retrieved.id.toString(), score, start = startSeconds?.toFloat(), end = endSeconds?.toFloat())
+        ScoredResult(sourceId = source.second?.id.toString(), retrieved.id.toString(), score, startSeconds?.toFloat(), endSeconds?.toFloat())
     })
     context.json(results)
 }
 
 @OpenApi(
-    summary = "Issues a similarity query based on a provided retrievable ID.",
-    path = "/api/retrieval/similarity/{field}/{retrievableId}/{pageSize}/{page}",
+    summary = "Issues a similarity query based on a provided retrievable ID (i.e., finds entries considered similar given the example).",
+    path = "/api/retrieval/similarity/{field}/{retrievableId}/{pageSize}",
     tags = [Retrieval],
     operationId = "getSearchSimilar",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query.", required = true),
+        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query (i.e., the feature to compare).", required = true),
         OpenApiParam(name = "retrievableId", type = String::class, description = "ID of the retrievable to find similar entries for.", required = true),
-        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
-        OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
@@ -169,9 +165,6 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
     val fieldName = context.pathParam("field")
     val retrievableId = context.pathParam("retrievableId")
     val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
-
-    // TODO: Number of pages. */
 
     /* Construct and parse query. */
     val query = InformationNeedDescription(
@@ -187,12 +180,13 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(page, pageSize, count = 0L, items = executor.query(retriever).mapNotNull { retrieved ->
+    val results = RetrievalResult(executor.query(retriever).mapNotNull { retrieved ->
+        val source = retrieved.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.filter { it.pred == "partOf" }.firstOrNull()?.obj ?: return@mapNotNull null
         val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
         val startSeconds = temporal?.startNs?.let { it.value / 10e9 }
         val endSeconds = temporal?.endNs?.let { it.value / 10e9 }
         val score = retrieved.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble() ?: return@mapNotNull null
-        ScoredMediaItem(retrieved.id.toString(), score, start = startSeconds?.toFloat(), end = endSeconds?.toFloat())
+        ScoredResult(source.second?.id.toString(), retrieved.id.toString(), score, startSeconds?.toFloat(), endSeconds?.toFloat())
     })
     context.json(results)
 }
