@@ -64,7 +64,7 @@ fun lookup(context: Context, schema: Schema) {
 
 @OpenApi(
     summary = "Get type of given retrievable.",
-    path = "/api/retrieval/type/{mediaResourceId}",
+    path = "/api/retrieval/type/{retrievableId}",
     tags = [Retrieval],
     operationId = "getRetrievableType",
     methods = [HttpMethod.GET],
@@ -85,7 +85,9 @@ fun type(context: Context, schema: Schema) {
 
     /* Extract field and return it. */
     val reader = schema.connection.getRetrievableReader()
-    val type = reader[retrievableId]?.type?.let { MediaType.valueOf(it) } ?: throw ErrorStatusException(404, "Failed to find retrievable for ID $retrievableId.")
+    val type = reader[retrievableId]?.type?.let { type ->
+        type.split(":").getOrNull(1)?.uppercase()?.let { MediaType.valueOf(it) } ?: MediaType.UNKNOWN
+    } ?: throw ErrorStatusException(404, "Failed to find retrievable for ID $retrievableId.")
     context.json(type)
 }
 
