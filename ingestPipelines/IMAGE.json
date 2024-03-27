@@ -2,7 +2,7 @@
   "schema": "xreco",
   "context": {
     "contentFactory": "InMemoryContentFactory",
-    "resolverFactory": "DiskResolver"
+    "resolverFactory": "MinioResolver"
   },
   "enumerator": {
     "name": "ListEnumerator",
@@ -23,8 +23,11 @@
                 "name": "ThumbnailExporter",
                 "exporterName": "thumbnail",
                   "nextExtractor": {
-                    "fieldName": "time"
-                  }
+                    "fieldName": "time",
+                    "nextExtractor": {
+                      "fieldName": "landmark"
+                    }
+                    }
                 }
             }
           }

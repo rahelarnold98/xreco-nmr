@@ -24,7 +24,7 @@
             {
               "name": "AverageImageContentAggregator",
               "nextExtractor": {
-                "fieldName": "clip",
+                "fieldName": "landmark",
                 "nextExporter": {
                   "name": "ThumbnailExporter",
                   "exporterName": "thumbnail",

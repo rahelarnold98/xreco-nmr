@@ -15,10 +15,12 @@ import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
+import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.*
+import java.lang.Thread.sleep
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -33,7 +35,8 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
     override val contentClasses = setOf(ImageContent::class)
     override val descriptorClass = LabelDescriptor::class
 
-    private val url = "https://ep33exn95a.execute-api.eu-west-1.amazonaws.com/extract/landmark\""
+
+    private val url = "https://ep33exn95a.execute-api.eu-west-1.amazonaws.com/extract/landmark"
 
     /**
      * Generates a prototypical [LabelDescriptor] for this [Landmarks].
@@ -112,18 +115,16 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @param content The [ContentElement] for which to request the Landmarks feature descriptor.
      * @return A list of Landmarks feature descriptors.
      */
-    // TODO removed ovveride fun analyse
-     fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> {
-        return when (content) {
+    // TODO removed override fun analyse
+     fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
             is ImageContent -> {
                 val results = executeImageApiRequest(source)
                 val labelDescriptors: List<LabelDescriptor> = results.map { res ->
                     LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
                 }
-                return labelDescriptors
+                labelDescriptors
             }
-            else -> throw IllegalArgumentException("not implemented")
-        }
+            else -> throw IllegalArgumentException("Content '$content' not supported")
     }
 
 
@@ -132,7 +133,6 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
 
         val minio = Config().minio
 
-        // TODO improve this json
         val json = LandmarksRequest(
             data = "${minio.url}/${MinioConfig.ASSETS_BUCKET}/$source",
             last = true, // as it is an image
@@ -161,29 +161,23 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
             writer.close()
             outputStream.close()
 
-            // Get the response code (optional, but useful for error handling)
+            // Get the response code and handle the response
             val responseCode = connection.responseCode
-
-            // Read the response as a JSON string
-            val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read and parse the response JSON
                 val inputStream = BufferedReader(InputStreamReader(connection.inputStream))
-                val response = inputStream.readText()
+                val responseJson = inputStream.readText()
                 inputStream.close()
-                response
+                val labelPairsType = object : TypeToken<List<LabelPair>>() {}.type
+                return Gson().fromJson(responseJson, labelPairsType)
             } else {
-                null
+                // Handle non-200 responses
+                println("Request failed with status code: $responseCode")
+                // Optionally, parse the error response if available
+                val errorResponseJson = BufferedReader(InputStreamReader(connection.errorStream)).readText()
+                println("Error response: $errorResponseJson")
+                println("Request body: $jsonString")
             }
-
-            // Parse the JSON using Gson
-            val labelPairsType = object : TypeToken<List<LabelPair>>() {}.type
-            val labelPairs: List<LabelPair> = Gson().fromJson(responseJson, labelPairsType)
-
-            labelPairs.forEach {
-                println("label: "+it.label+ "confidence: " + it.confidence)
-            }
-
-            // TODO: Process the responseJson as needed
-            return labelPairs
 
         } catch (e: Exception) {
             e.printStackTrace()

@@ -78,6 +78,7 @@ class MinioResolver : ResolverFactory {
             override fun openOutputStream(): OutputStream {
                 val tempFile = Files.createTempFile("upload-", null)
                 val outputStream = Files.newOutputStream(tempFile)
+                var contentType = "application/octet-stream" // Default content type
 
                 return object : OutputStream() {
                     private var closed = false
@@ -108,12 +109,22 @@ class MinioResolver : ResolverFactory {
                             closed = true
                             outputStream.close()
 
+                            // Check if file is of type "image/png"
+                            val mimeType = Files.probeContentType(tempFile)
+                            if (mimeType != null && mimeType.startsWith("image/png")) {
+                                contentType = "image/png"
+                            }
+
                             // Upload temporary file to Minio
                             val inputStream = Files.newInputStream(tempFile)
+                            println(contentType)
                             try {
                                 minioClient.putObject(
-                                    PutObjectArgs.builder().bucket(bucketName).`object`(retrievableId.toString())
-                                        .stream(inputStream, Files.size(tempFile), -1).build()
+                                    PutObjectArgs.builder().bucket(bucketName)
+                                        .`object`(retrievableId.toString())
+                                        .stream(inputStream, Files.size(tempFile), -1)
+                                        .contentType("image/png") // Specify the content type
+                                        .build()
                                 )
                             } finally {
                                 inputStream.close()

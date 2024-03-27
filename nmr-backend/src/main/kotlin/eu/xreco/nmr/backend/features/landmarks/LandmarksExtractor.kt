@@ -4,19 +4,17 @@ import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ContentElement
+import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.Ingested
-import org.vitrivr.engine.core.model.retrievable.Relationship
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.retrievable.attributes.ContentAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 
 /**
- * [LandmarksExtractor] implementation of an [AbstractExtractor] for [Landmarls].
+ * [LandmarksExtractor] implementation of an [AbstractExtractor] for [Landmarks].
  *
  * @param field Schema field for which the extractor generates descriptors.
  * @param input Operator representing the input data source.
@@ -25,10 +23,15 @@ import org.vitrivr.engine.core.operators.ingest.Extractor
  * @author Rahel Arnold
  * @version 1.1.0
  */
-class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<ContentElement<*>, LabelDescriptor>, persisting: Boolean = true) : AbstractExtractor<ContentElement<*>, LabelDescriptor>(input, field, persisting) {
+class LandmarksExtractor(
+    input: Operator<Retrievable>,
+    field: Schema.Field<ContentElement<*>, LabelDescriptor>,
+    persisting: Boolean = true
+) : AbstractExtractor<ContentElement<*>, LabelDescriptor>(input, field, persisting) {
 
     /** The host of the external [Landmarks] service. */
-    private val host: String = field.parameters[ExternalAnalyser.HOST_PARAMETER_NAME] ?: ExternalAnalyser.HOST_PARAMETER_DEFAULT
+    private val host: String =
+        field.parameters[ExternalAnalyser.HOST_PARAMETER_NAME] ?: ExternalAnalyser.HOST_PARAMETER_DEFAULT
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
@@ -36,7 +39,8 @@ class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<Conte
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }
+    override fun matches(retrievable: Retrievable): Boolean =
+        retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }
 
     /**
      * Internal method to perform extraction on [Retrievable].
@@ -47,9 +51,12 @@ class LandmarksExtractor(input: Operator<Retrievable>, field: Schema.Field<Conte
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
         check(retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }) { "Incoming retrievable is not a retrievable with IMAGE content. This is a programmer's error!" }
 
-        val source = (((retrievable as Ingested).filteredAttributes(RelationshipAttribute::class.java) as HashSet).toArray()[0] as Relationship).obj.first
+        val a = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
+            .filterIsInstance<ImageContent>()
+        val source = retrievable.id
         val content = retrievable.filteredAttributes(ContentAttribute::class.java)
 
+        println("content: $content")
         return content.flatMap { c ->
             val analysisResults = (this.field.analyser as? Landmarks)?.analyseList(c.content, source) ?: emptyList()
             analysisResults.map { result ->
