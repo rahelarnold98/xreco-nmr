@@ -9,7 +9,7 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.Model3DContent
-import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.IntVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
@@ -27,21 +27,20 @@ import java.util.*
 import kotlin.reflect.KClass
 
 /**
- * Implementation of the [CERTH] [ExternalAnalyser], which derives the CERTH feature from an [Model3DContent] as [FloatVectorDescriptor].
+ * Implementation of the [CERTH] [ExternalAnalyser], which derives the CERTH feature from an [Model3DContent] as [IntVectorDescriptor].
  *
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
+class CERTH : ExternalAnalyser<Model3DContent, IntVectorDescriptor>() {
 
     companion object {
         // Size of descriptor
-        // TODO change value as soon as the actual size is known
-        const val VECTOR_SIZE = 512
+        const val VECTOR_SIZE = 32
     }
 
     override val contentClasses: Set<KClass<out ContentElement<*>>> = setOf(Model3DContent::class)
-    override val descriptorClass = FloatVectorDescriptor::class
+    override val descriptorClass = IntVectorDescriptor::class
 
     /**
      * Requests the CERTH feature descriptor for the given [ContentElement].
@@ -50,9 +49,9 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @param hostname The hostname of the external feature descriptor service.
      * @return A list of CERTH feature descriptors.
      */
-    override fun analyse(content: Model3DContent, hostname: String): FloatVectorDescriptor {
-        val list: List<Value.Float> = executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
-        return FloatVectorDescriptor(UUID.randomUUID(), null, list, true)
+    override fun analyse(content: Model3DContent, hostname: String): IntVectorDescriptor {
+        val list: List<Value.Int> = executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
+        return IntVectorDescriptor(UUID.randomUUID(), null, list, true)
     }
 
 
@@ -62,7 +61,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @param content The [ContentElement] for which to request the CERTH feature descriptor.
      * @return A list of CERTH feature descriptors.
      */
-    fun requestDescriptor(content: ContentElement<*>): List<Value.Float> {
+    fun requestDescriptor(content: ContentElement<*>): List<Value.Int> {
         require(content is Model3DContent) { "Unsupported content type." }
         return executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
     }
@@ -70,7 +69,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
     /**
      *
      */
-    private fun executeApiRequest(url: String, content: Model3DContent): List<Value.Float> {
+    private fun executeApiRequest(url: String, content: Model3DContent): List<Value.Int> {
         // Create an HttpURLConnection
         val connection = URL(url).openConnection() as HttpURLConnection
 
@@ -101,10 +100,10 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
                 null
             }
 
-            // Parse the JSON string to List<Float> using Gson
+            // Parse the JSON string to List<Int> using Gson
             return if (responseJson != null) {
                 try {
-                    Json.decodeFromString(ListSerializer(Float.serializer()), responseJson).map { Value.Float(it) }
+                    Json.decodeFromString(ListSerializer(Int.serializer()), responseJson).map { Value.Int(it) }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     emptyList()
@@ -123,12 +122,12 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
     }
 
     /**
-     * Generates a prototypical [FloatVectorDescriptor] for this [CERTH].
+     * Generates a prototypical [IntVectorDescriptor] for this [CERTH].
      *
      * @param field [Schema.Field] to create the prototype for.
-     * @return [FloatVectorDescriptor]
+     * @return [IntVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(VECTOR_SIZE) { Value.Float(0.0f) }, true)
+    override fun prototype(field: Schema.Field<*, *>) = IntVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(VECTOR_SIZE) { Value.Int(0) }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
@@ -141,7 +140,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<Model3DContent, FloatVectorDescriptor> {
+    override fun newExtractor(field: Schema.Field<Model3DContent, IntVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<Model3DContent, IntVectorDescriptor> {
         require(field.analyser == this) {  "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return CERTHExtractor(input, field, persisting, this)
     }
@@ -156,7 +155,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, IntVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, IntVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Extract URL for external content transformation service. */
@@ -166,7 +165,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
         val descriptor = content.map { this.analyse(it, host) }.first()
         val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
         val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val query = ProximityQuery<Value.Float>(value = descriptor.vector, k = k, fetchVector = returnDescriptor, distance = Distance.COSINE)
+        val query = ProximityQuery<Value.Int>(value = descriptor.vector, k = k.toLong(), fetchVector = returnDescriptor, distance = Distance.COSINE)
 
         /* Construct retriever. */
         return this.newRetrieverForQuery(field, query, context)
@@ -182,11 +181,11 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+    override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, IntVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, IntVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-        require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "" }
+        require(query is ProximityQuery<*> && query.value.first() is Value.Int) { "" }
 
         @Suppress("UNCHECKED_CAST")
-        return CERTHRetriever(field, query as ProximityQuery<Value.Float>, context)
+        return CERTHRetriever(field, query as ProximityQuery<Value.Int>, context)
     }
 }
