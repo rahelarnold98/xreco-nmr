@@ -11,6 +11,7 @@ import io.javalin.openapi.plugin.OpenApiPluginConfiguration
 import io.javalin.openapi.plugin.SecurityComponentConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import io.javalin.plugin.bundled.CorsPluginConfig
 import io.minio.MinioClient
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
@@ -102,8 +103,8 @@ private fun javalin() = Javalin.create {
 
     /* Register Swagger UI. */
     it.plugins.register(
-        SwaggerPlugin(SwaggerConfiguration().apply {
-            this.version = "4.10.3"
+        SwaggerPlugin(
+            SwaggerConfiguration().apply {
             this.documentationPath = "/swagger-docs"
             this.uiPath = "/swagger-ui"
         })
