@@ -9,18 +9,17 @@ import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.content.element.ContentElement
 import org.vitrivr.engine.core.model.content.element.ImageContent
+import org.vitrivr.engine.core.model.content.element.TextContent
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 import org.vitrivr.engine.core.model.query.fulltext.SimpleFulltextQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
-import org.vitrivr.engine.core.model.types.toValue
 import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.ingest.Extractor
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.io.*
-import java.lang.Thread.sleep
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -78,12 +77,10 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @throws [UnsupportedOperationException], if this [Landmarks] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, LabelDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
-        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-
         /* Extract parameters and construct query. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val descriptor = content.map { this.analyse(it, host) }
-        val query = SimpleFulltextQuery(descriptor.first().label, limit = k)
+        val descriptor = content.filterIsInstance<TextContent>()
+        val query = SimpleFulltextQuery(Value.String(descriptor.first().content), limit = k, attributeName = "label")
 
         /* Generate retriever. */
         return this.newRetrieverForQuery(field, query, context)
@@ -93,7 +90,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * Generates and returns a new [Retriever] instance for this [Landmarks].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
+     * @param query An [Query] to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Landmarks]
@@ -105,8 +102,8 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
         return LandmarksRetriever(field, query, context)
     }
 
-    override fun analyse(content: ContentElement<*>, hostname: String): LabelDescriptor {
-        TODO("Not yet implemented")
+    override fun analyse(content: ContentElement<*>, hostname: String): LabelDescriptor  {
+        TODO()
     }
 
     /**
@@ -115,16 +112,17 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @param content The [ContentElement] for which to request the Landmarks feature descriptor.
      * @return A list of Landmarks feature descriptors.
      */
-    // TODO removed override fun analyse
+     // TODO removed override fun analyse
+     // TODO (rgasser): This is ugly and should be reconciliated with analyser().
      fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
-            is ImageContent -> {
-                val results = executeImageApiRequest(source)
-                val labelDescriptors: List<LabelDescriptor> = results.map { res ->
-                    LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
-                }
-                labelDescriptors
+        is ImageContent -> {
+            val results = executeImageApiRequest(source)
+            val labelDescriptors: List<LabelDescriptor> = results.map { res ->
+                LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
             }
-            else -> throw IllegalArgumentException("Content '$content' not supported")
+            labelDescriptors
+        }
+        else -> throw IllegalArgumentException("Content '$content' not supported")
     }
 
 
