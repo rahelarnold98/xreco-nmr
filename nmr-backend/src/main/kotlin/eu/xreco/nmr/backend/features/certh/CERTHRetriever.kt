@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.flow
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.features.AbstractRetriever
 import org.vitrivr.engine.core.model.content.element.Model3DContent
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.IntVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
@@ -26,7 +27,7 @@ import org.vitrivr.engine.core.model.types.Value
  * @author Rahel Arnold
  * @version 1.0.0
  */
-class CERTHRetriever(field: Schema.Field<Model3DContent, IntVectorDescriptor>, query: ProximityQuery<Value.Int>, context: QueryContext) : AbstractRetriever<Model3DContent, IntVectorDescriptor>(field, query, context) {
+class CERTHRetriever(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: ProximityQuery<Value.Float>, context: QueryContext) : AbstractRetriever<Model3DContent, FloatVectorDescriptor>(field, query, context) {
 
     companion object {
         fun scoringFunction(retrieved: Retrieved): Float {
