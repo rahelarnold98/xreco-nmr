@@ -77,12 +77,10 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @throws [UnsupportedOperationException], if this [Landmarks] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, LabelDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
-        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
-
         /* Extract parameters and construct query. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val descriptor = content.map { this.analyse(it, host) }
-        val query = SimpleFulltextQuery(descriptor.first().label, limit = k)
+        val descriptor = content.filterIsInstance<TextContent>()
+        val query = SimpleFulltextQuery(Value.String(descriptor.first().content), limit = k, attributeName = "label")
 
         /* Generate retriever. */
         return this.newRetrieverForQuery(field, query, context)
