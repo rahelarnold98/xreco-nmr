@@ -116,15 +116,21 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @return A list of Landmarks feature descriptors.
      */
     // TODO removed override fun analyse
-     fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
-            is ImageContent -> {
-                val results = executeImageApiRequest(source)
-                val labelDescriptors: List<LabelDescriptor> = results.map { res ->
-                    LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
-                }
-                labelDescriptors
+    fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
+        is ImageContent -> {
+            val results = executeImageApiRequest(source)
+            val labelDescriptors: List<LabelDescriptor> = results.map { res ->
+                LabelDescriptor(
+                    UUID.randomUUID(),
+                    UUID.randomUUID(),
+                    Value.String(res.label.replace("_", " ")), // Replace underscores with blank space
+                    Value.Float(res.confidence),
+                    true
+                )
             }
-            else -> throw IllegalArgumentException("Content '$content' not supported")
+            labelDescriptors
+        }
+        else -> throw IllegalArgumentException("Content '$content' not supported")
     }
 
 
