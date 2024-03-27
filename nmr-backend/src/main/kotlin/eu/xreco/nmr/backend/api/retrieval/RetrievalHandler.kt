@@ -19,6 +19,7 @@ import org.vitrivr.engine.query.model.api.input.VectorInputData
 import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
 import org.vitrivr.engine.query.model.api.operator.TransformerDescription
 import org.vitrivr.engine.query.parsing.QueryParser
+import java.math.BigDecimal
 import java.util.*
 import kotlin.FloatArray
 import kotlin.Int
@@ -130,14 +131,17 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
 
     /* Execute query and return results. */
     context.json(RetrievalResult(page, pageSize, count = 0L, items = executor.query(retriever).map { retrieved ->
-        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull() { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+        val startSeconds = temporal?.startNs?.let { BigDecimal(it.value).divide(BigDecimal("10e9")) }
+        val endSeconds = temporal?.endNs?.let { BigDecimal(it.value).divide(BigDecimal("10e9")) }
         ScoredMediaItem(
             retrieved.id.toString(),
             retrieved.attributes.filterIsInstance<ScoreAttribute>().first().score.toDouble(),
-            start = temporal?.startNs?.div(10e9f),
-            end = temporal?.endNs?.div(10e9f),
+            start = startSeconds?.toFloat(),
+            end = endSeconds?.toFloat(),
         )
     }))
+
 }
 
 @OpenApi(
@@ -188,12 +192,14 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
 
     /* Execute query and return results. */
     context.json(RetrievalResult(page, pageSize, count = 0L, items = executor.query(retriever).map { retrieved ->
-        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull() { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+        val startSeconds = temporal?.startNs?.let { BigDecimal(it.value).divide(BigDecimal("10e9")) }
+        val endSeconds = temporal?.endNs?.let { BigDecimal(it.value).divide(BigDecimal("10e9")) }
         ScoredMediaItem(
             retrieved.id.toString(),
             retrieved.attributes.filterIsInstance<ScoreAttribute>().first().score.toDouble(),
-            start = temporal?.startNs?.div(10e9f),
-            end = temporal?.endNs?.div(10e9f),
+            start = startSeconds?.toFloat(),
+            end = endSeconds?.toFloat(),
         )
     }))
 }
