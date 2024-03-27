@@ -77,10 +77,12 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @throws [UnsupportedOperationException], if this [Landmarks] does not support the creation of an [Retriever] instance.
      */
     override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, LabelDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): Retriever<ContentElement<*>, LabelDescriptor> {
+        val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
+
         /* Extract parameters and construct query. */
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val descriptor = content.filterIsInstance<TextContent>()
-        val query = SimpleFulltextQuery(Value.String(descriptor.first().content), limit = k, attributeName = "label")
+        val descriptor = content.map { this.analyse(it, host) }
+        val query = SimpleFulltextQuery(descriptor.first().label, limit = k)
 
         /* Generate retriever. */
         return this.newRetrieverForQuery(field, query, context)
@@ -90,7 +92,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * Generates and returns a new [Retriever] instance for this [Landmarks].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param query An [Query] to use with the [Retriever]
+     * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Landmarks]
@@ -102,8 +104,8 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
         return LandmarksRetriever(field, query, context)
     }
 
-    override fun analyse(content: ContentElement<*>, hostname: String): LabelDescriptor  {
-        TODO()
+    override fun analyse(content: ContentElement<*>, hostname: String): LabelDescriptor {
+        TODO("Not yet implemented")
     }
 
     /**
@@ -112,13 +114,19 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * @param content The [ContentElement] for which to request the Landmarks feature descriptor.
      * @return A list of Landmarks feature descriptors.
      */
-     // TODO removed override fun analyse
-     // TODO (rgasser): This is ugly and should be reconciliated with analyser().
-     fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
+    // TODO removed override fun analyse
+    // TODO (rgasser): This is ugly and should be reconciliated with analyser().
+    fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
         is ImageContent -> {
             val results = executeImageApiRequest(source)
             val labelDescriptors: List<LabelDescriptor> = results.map { res ->
-                LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label), Value.Float(res.confidence), true)
+                LabelDescriptor(
+                    UUID.randomUUID(),
+                    UUID.randomUUID(),
+                    Value.String(res.label.replace("_", " ")), // Replace underscores with blank space
+                    Value.Float(res.confidence),
+                    true
+                )
             }
             labelDescriptors
         }
