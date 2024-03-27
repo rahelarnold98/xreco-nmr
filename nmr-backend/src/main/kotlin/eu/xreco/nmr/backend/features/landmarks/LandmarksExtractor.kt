@@ -4,7 +4,6 @@ import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.features.AbstractExtractor
 import org.vitrivr.engine.core.model.content.ContentType
 import org.vitrivr.engine.core.model.content.element.ContentElement
-import org.vitrivr.engine.core.model.content.element.ImageContent
 import org.vitrivr.engine.core.model.descriptor.Descriptor
 import org.vitrivr.engine.core.model.descriptor.struct.LabelDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
@@ -30,8 +29,7 @@ class LandmarksExtractor(
 ) : AbstractExtractor<ContentElement<*>, LabelDescriptor>(input, field, persisting) {
 
     /** The host of the external [Landmarks] service. */
-    private val host: String =
-        field.parameters[ExternalAnalyser.HOST_PARAMETER_NAME] ?: ExternalAnalyser.HOST_PARAMETER_DEFAULT
+    private val host: String = field.parameters[ExternalAnalyser.HOST_PARAMETER_NAME] ?: ExternalAnalyser.HOST_PARAMETER_DEFAULT
 
     /**
      * Internal method to check, if [Retrievable] matches this [Extractor] and should thus be processed.
@@ -49,12 +47,8 @@ class LandmarksExtractor(
      * @return List of resulting [Descriptor]s.
      */
     override fun extract(retrievable: Retrievable): List<LabelDescriptor> {
-        check(retrievable.filteredAttributes(ContentAttribute::class.java).any { it.type == ContentType.BITMAP_IMAGE }) { "Incoming retrievable is not a retrievable with IMAGE content. This is a programmer's error!" }
-
-        val a = retrievable.filteredAttributes(ContentAttribute::class.java).map { it.content }
-            .filterIsInstance<ImageContent>()
+        val content = retrievable.filteredAttributes(ContentAttribute::class.java).filter {  it.type == ContentType.BITMAP_IMAGE }
         val source = retrievable.id
-        val content = retrievable.filteredAttributes(ContentAttribute::class.java)
 
         println("content: $content")
         return content.flatMap { c ->

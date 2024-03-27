@@ -90,7 +90,7 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
      * Generates and returns a new [Retriever] instance for this [Landmarks].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
-     * @param descriptors An array of [LabelDescriptor] elements to use with the [Retriever]
+     * @param query The [Query] to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      *
      * @return A new [Retriever] instance for this [Landmarks]
@@ -117,14 +117,8 @@ class Landmarks :  ExternalAnalyser<ContentElement<*>, LabelDescriptor>() {
     fun analyseList(content: ContentElement<*>, source: UUID): List<LabelDescriptor> = when(content){
         is ImageContent -> {
             val results = executeImageApiRequest(source)
-            val labelDescriptors: List<LabelDescriptor> = results.map { res ->
-                LabelDescriptor(
-                    UUID.randomUUID(),
-                    UUID.randomUUID(),
-                    Value.String(res.label.replace("_", " ")), // Replace underscores with blank space
-                    Value.Float(res.confidence),
-                    true
-                )
+            val labelDescriptors: List<LabelDescriptor> = results.filter { it.confidence >= 0.7f }.map { res ->
+                LabelDescriptor(UUID.randomUUID(), UUID.randomUUID(), Value.String(res.label.replace("_", " ")), Value.Float(res.confidence), true)
             }
             labelDescriptors
         }
