@@ -29,7 +29,7 @@ import kotlin.String
 
 @OpenApi(
     summary = "Returns the descriptor for the given media resource.",
-    path = "/api/retrieval/lookup/{retrievableId}/{entity}",
+    path = "/api/retrieval/lookup/{field}/{retrievableId}",
     tags = [Retrieval],
     operationId = "getDescriptor",
     methods = [HttpMethod.GET],
@@ -47,15 +47,15 @@ import kotlin.String
 )
 fun lookup(context: Context, schema: Schema) {
     /* Extract necessary parameters. */
-    val resourceId = UUID.fromString(context.pathParam("resourceId"))
     val fieldName = context.pathParam("field")
+    val retrievableId = UUID.fromString(context.pathParam("retrievableId"))
 
     /* Extract field and return it. */
     val field = schema[fieldName] ?: throw ErrorStatusException(404, "Could not find field '${fieldName}' in schema ${schema.name}.")
     val reader = field.getReader()
 
     /* Extract descriptor and return it. */
-    when (val descriptor = reader[resourceId]) {
+    when (val descriptor = reader.getBy(retrievableId, "retrievableId")) {
         is FloatVectorDescriptor -> context.json(descriptor.vector)
         is StringDescriptor -> context.json(Text(descriptor.value.value))
         else -> throw ErrorStatusException(400, "Unsupported feature type.")
