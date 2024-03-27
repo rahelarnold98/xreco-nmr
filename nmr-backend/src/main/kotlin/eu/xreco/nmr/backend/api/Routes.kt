@@ -38,10 +38,10 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
 
         /* Endpoints related to retrieval- */
         ApiBuilder.path("retrieval") {
-            ApiBuilder.get("lookup/{retrievableId}/{entity}") { lookup(it, schema) }
+            ApiBuilder.get("lookup/{retrievableId}/{field}") { lookup(it, schema) }
             ApiBuilder.get("type/{retrievableId}") { type(it, schema) }
-            ApiBuilder.get("text/{entity}/{retrievableId}/{pageSize}/{page}") { getFulltext(it, schema, runtime) }
-            ApiBuilder.get("similarity/{entity}/{retrievableId}/{pageSize}/{page}") {
+            ApiBuilder.get("text/{field}/{text}/{pageSize}/{page}") { getFulltext(it, schema, runtime) }
+            ApiBuilder.get("similarity/{field}/{retrievableId}/{pageSize}/{page}") {
                 getSimilar(it, schema, runtime)
             }
             ApiBuilder.get("filter/{condition}/{pageSize}/{page}") { filter(it) }
