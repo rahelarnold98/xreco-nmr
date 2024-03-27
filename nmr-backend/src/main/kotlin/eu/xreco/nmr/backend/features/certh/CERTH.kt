@@ -164,7 +164,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
 
         /* Extract parameters and construct query. */
         val descriptor = content.map { this.analyse(it, host) }.first()
-        val k = context.getProperty(field.fieldName, "limit")?.toIntOrNull() ?: 1000
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
         val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
         val query = ProximityQuery<Value.Float>(value = descriptor.vector, k = k, fetchVector = returnDescriptor, distance = Distance.COSINE)
 

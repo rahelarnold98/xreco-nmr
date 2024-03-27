@@ -37,7 +37,7 @@ class CERTHRetriever(field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
 
     override fun toFlow(scope: CoroutineScope) = flow {
         this@CERTHRetriever.reader.getAll(this@CERTHRetriever.query).forEach {
-            it.addAttribute(ScoreAttribute(scoringFunction(it)))
+            it.addAttribute(ScoreAttribute.Unbound(scoringFunction(it)))
             emit(it)
         }
     }
