@@ -1,9 +1,14 @@
 package eu.xreco.nmr.backend.features.certh
 
 
+import eu.xreco.nmr.backend.config.MinioClientSingleton
+import eu.xreco.nmr.backend.config.MinioConfig
+import io.minio.GetObjectTagsArgs
+import io.minio.messages.Tags
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import org.json.JSONObject
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.context.IndexContext
 import org.vitrivr.engine.core.context.QueryContext
@@ -51,7 +56,8 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A list of CERTH feature descriptors.
      */
     override fun analyse(content: Model3DContent, hostname: String): FloatVectorDescriptor {
-        val list: List<Value.Float> = executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
+        val list: List<Value.Float> =
+            executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/", content)
         return FloatVectorDescriptor(UUID.randomUUID(), null, list, true)
     }
 
@@ -64,7 +70,25 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      */
     fun requestDescriptor(content: ContentElement<*>): List<Value.Float> {
         require(content is Model3DContent) { "Unsupported content type." }
-        return executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/?usecase=Tourism", content)
+        return executeApiRequest("http://160.40.53.193:8000/3D model retrieval/extract/", content)
+    }
+
+    /**
+     * Retrieves the filename associated with the asset ID from Minio.
+     *
+     * @param minio The [MinioClient] instance used to connect to Minio.
+     * @param bucket The name of the Minio bucket.
+     * @param assetId The asset ID for which the filename needs to be retrieved.
+     * @return The filename associated with the asset ID.
+     */
+    private fun getFilenameFromMinio(assetId: String): String {
+        val tags: Tags = MinioClientSingleton.minioClient.getObjectTags(
+            GetObjectTagsArgs.builder().bucket(MinioConfig.ASSETS_BUCKET).`object`(assetId).build()
+        ) ?: Tags()
+
+        // println("assetid $assetId")
+
+        return tags.get()["filename"] ?: ""
     }
 
     /**
@@ -72,28 +96,42 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      */
     private fun executeApiRequest(url: String, content: Model3DContent): List<Value.Float> {
         // Create an HttpURLConnection
-        val connection = URL(url).openConnection() as HttpURLConnection
+        val orgNameFull = getFilenameFromMinio(content.id)
+        val orgName = orgNameFull.substringBefore('.')
+        val completeUrl = "$url$orgName".replace(" ", "%20")
+        var connectionPost = URL(completeUrl).openConnection() as HttpURLConnection
 
+        // TODO change as soon as CERTH has changed and localhost of them is no longer needed
+        val jsonString = """
+        {
+          "data": "http://127.0.0.1:9000/public/${orgNameFull}",
+          "start": 0,
+          "end": 0,
+          "last": true
+        }
+        """.trimIndent()
+
+        var jobId: String = ""
         try {
             // Set up the connection for a POST request
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            connectionPost.requestMethod = "POST"
+            connectionPost.doOutput = true
+            connectionPost.setRequestProperty("Content-Type", "application/json")
 
             // Write the request body to the output stream
-            val outputStream: OutputStream = connection.outputStream
+            val outputStream: OutputStream = connectionPost.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            writer.write("data=$content") // TODO change to work with irl of min.io
+            writer.write(jsonString)
             writer.flush()
             writer.close()
             outputStream.close()
 
             // Get the response code (optional, but useful for error handling)
-            val responseCode = connection.responseCode
+            val responseCode = connectionPost.responseCode
 
             // Read the response as a JSON string
             val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
-                val inputStream = BufferedReader(InputStreamReader(connection.inputStream))
+                val inputStream = BufferedReader(InputStreamReader(connectionPost.inputStream))
                 val response = inputStream.readLine()
                 inputStream.close()
                 response
@@ -101,10 +139,56 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
                 null
             }
 
+            // Parse the JSON string
+            // println(responseJson)
+            val jsonObject =
+                JSONObject(responseJson?.substring(IntRange(1, responseJson.length - 2))?.replace("\\", ""))
+
+            // Get the value associated with the "jobId" key
+            jobId = jsonObject.getString("jobId")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // TODO Handle exceptions as needed
+        } finally {
+            connectionPost.disconnect()
+        }
+        // println(jobId)
+
+        // Create GET request to get result
+        val connectionGet = URL("$completeUrl/$jobId").openConnection() as HttpURLConnection
+
+        // Set the request method to GET
+        connectionGet.requestMethod = "GET"
+        connectionGet.connectTimeout = 5000 // 5 seconds
+        connectionGet.readTimeout = 5000 // 5 seconds
+
+        try {
+            // Get the response code (optional, but useful for error handling)
+            val responseCode = connectionGet.responseCode
+            // Read the response as a JSON string
+            val responseJson = if (responseCode == HttpURLConnection.HTTP_OK) {
+                val inputStream = BufferedReader(InputStreamReader(connectionGet.inputStream))
+                val response = inputStream.use { it.readText() }
+                // println("Response: $response")
+                inputStream.close()
+                response
+            } else {
+                null
+            }
+
+            val jsonObject =
+                JSONObject(responseJson?.substring(IntRange(1, responseJson.length - 2))?.replace("\\", ""))
+            val descriptor = jsonObject.getJSONArray("result").toString()
+            //println(descriptor)
+
             // Parse the JSON string to List<Int> using Gson
             return if (responseJson != null) {
                 try {
-                    Json.decodeFromString(ListSerializer(Float.serializer()), responseJson).map { Value.Float(it) }
+                    // Json.decodeFromString(ListSerializer(Float.serializer()), descriptor).map { Value.Float(it) }
+                    descriptor.trim('[', ']') // Remove square brackets
+                        .split(",") // Split by comma
+                        .map { Value.Float(it.toFloat()) } // Convert each string element to float
+                        .toList() // Convert to List<Float>
                 } catch (e: Exception) {
                     e.printStackTrace()
                     emptyList()
@@ -117,7 +201,7 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
             e.printStackTrace()
             // TODO Handle exceptions as needed
         } finally {
-            connection.disconnect()
+            connectionGet.disconnect()
         }
         return emptyList()
     }
@@ -128,7 +212,8 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @param field [Schema.Field] to create the prototype for.
      * @return [IntVectorDescriptor]
      */
-    override fun prototype(field: Schema.Field<*, *>) = FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(VECTOR_SIZE) { Value.Float(0.0f) }, true)
+    override fun prototype(field: Schema.Field<*, *>) =
+        FloatVectorDescriptor(UUID.randomUUID(), UUID.randomUUID(), List(VECTOR_SIZE) { Value.Float(0.0f) }, true)
 
     /**
      * Generates and returns a new [Extractor] instance for this [Analyser].
@@ -141,8 +226,14 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Extractor] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Extractor] instance.
      */
-    override fun newExtractor(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): Extractor<Model3DContent, FloatVectorDescriptor> {
-        require(field.analyser == this) {  "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
+    override fun newExtractor(
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
+        input: Operator<Retrievable>,
+        context: IndexContext,
+        persisting: Boolean,
+        parameters: Map<String, Any>
+    ): Extractor<Model3DContent, FloatVectorDescriptor> {
+        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         return CERTHExtractor(input, field, persisting, this)
     }
 
@@ -156,7 +247,11 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+    override fun newRetrieverForContent(
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
+        content: Collection<Model3DContent>,
+        context: QueryContext
+    ): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Extract URL for external content transformation service. */
@@ -165,8 +260,11 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
         /* Extract parameters and construct query. */
         val descriptor = content.map { this.analyse(it, host) }.first()
         val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val query = ProximityQuery<Value.Float>(value = descriptor.vector, k = k.toLong(), fetchVector = returnDescriptor, distance = Distance.COSINE)
+        val returnDescriptor =
+            context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+        val query = ProximityQuery<Value.Float>(
+            value = descriptor.vector, k = k.toLong(), fetchVector = returnDescriptor, distance = Distance.COSINE
+        )
 
         /* Construct retriever. */
         return this.newRetrieverForQuery(field, query, context)
@@ -182,11 +280,12 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForQuery(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+    override fun newRetrieverForQuery(
+        field: Schema.Field<Model3DContent, FloatVectorDescriptor>, query: Query, context: QueryContext
+    ): Retriever<Model3DContent, FloatVectorDescriptor> {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
         require(query is ProximityQuery<*> && query.value.first() is Value.Float) { "" }
 
-        @Suppress("UNCHECKED_CAST")
-        return CERTHRetriever(field, query as ProximityQuery<Value.Float>, context)
+        @Suppress("UNCHECKED_CAST") return CERTHRetriever(field, query as ProximityQuery<Value.Float>, context)
     }
 }

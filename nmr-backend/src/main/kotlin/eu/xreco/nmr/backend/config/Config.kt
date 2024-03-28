@@ -38,7 +38,7 @@ data class Config(
             FieldConfig("clip", "CLIP", mapOf("host" to "http://localhost:8888/" )),
             FieldConfig("sphericalharmonics", "SphericalHarmonics"),
             // TODO add landmarks and CERTH feature as soon as ready
-            FieldConfig("certh", "CERTH", mapOf("host" to "http://160.40.53.193:8000")),
+            FieldConfig("certh", "CERTH"),
             FieldConfig("landmark", "Landmarks")
         ),
 

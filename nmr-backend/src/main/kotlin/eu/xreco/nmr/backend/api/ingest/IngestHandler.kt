@@ -203,6 +203,7 @@ private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> = 
                     .contentType(file.contentType())
                     .tags(
                         mapOf(
+                            FILENAME_TAG_NAME to file.filename(),
                             MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
                             MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
                             TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),
