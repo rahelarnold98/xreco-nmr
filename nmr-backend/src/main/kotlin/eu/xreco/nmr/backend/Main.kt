@@ -2,6 +2,7 @@ package eu.xreco.nmr.backend
 
 import eu.xreco.nmr.backend.api.initializeRoutes
 import eu.xreco.nmr.backend.config.Config
+import eu.xreco.nmr.backend.features.metadata.XRecoMetadataDescriptor
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
 import io.javalin.Javalin
@@ -15,7 +16,10 @@ import io.javalin.plugin.bundled.CorsPluginConfig
 import io.minio.MinioClient
 import org.vitrivr.engine.core.model.metamodel.SchemaManager
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
+import org.vitrivr.engine.core.database.ConnectionProvider
 import org.vitrivr.engine.core.database.Initializer
+import org.vitrivr.engine.core.util.extension.loadServiceForName
+import org.vitrivr.engine.plugin.cottontaildb.descriptors.struct.StructDescriptorProvider
 
 /** Version of NMR Backend API. */
 const val VERSION = "1.0.0"
@@ -31,11 +35,11 @@ fun main(args: Array<String>) {
     val manager = SchemaManager()
     manager.load(config.schema)
 
+    /* Access XReco schema and register custom providers. */
     val schema = manager.getSchema("xreco") ?: throw IllegalStateException("Schema 'xreco' not found.")
-    manager.getSchema("xreco")?.connection?.getRetrievableInitializer()
+    schema.connection.provider.register(XRecoMetadataDescriptor::class, StructDescriptorProvider)
 
     /* Init Database */
-    //val schema = this@SchemaCommand.schema
     var initialized = 0
     var initializer: Initializer<*> = schema.connection.getRetrievableInitializer()
     if (!initializer.isInitialized()) {
