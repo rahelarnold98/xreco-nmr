@@ -53,7 +53,7 @@ fun ingestImage(context: Context, config: Config, minio: MinioClient, manager: S
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
-        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+        context.json(IngestStatus(jobId.toString(), assets.map { it.sourceId.toString() }, System.currentTimeMillis()))
     }
 }
 
@@ -86,7 +86,7 @@ fun ingestVideo(context: Context, config: Config, minio: MinioClient, manager: S
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
-        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+        context.json(IngestStatus(jobId.toString(), assets.map { it.sourceId.toString() }, System.currentTimeMillis()))
     }
 }
 
@@ -119,7 +119,7 @@ fun ingestModel(context: Context, config: Config, minio: MinioClient, manager: S
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
-        context.json(IngestStatus(jobId.toString(), assets.map { it.toString() }, System.currentTimeMillis()))
+        context.json(IngestStatus(jobId.toString(), assets.map { it.sourceId.toString() }, System.currentTimeMillis()))
     }
 }
 
