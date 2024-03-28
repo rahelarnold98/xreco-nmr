@@ -44,9 +44,9 @@ class XRecoMetadataExtractor(input: Operator<Retrievable>, field: Schema.Field<C
                 XRecoMetadataDescriptor(
                     id = UUID.randomUUID(),
                     retrievableId = retrievable.id,
-                    title = (source.metadata[FIELD_NAME_TITLE] as? String)?.let { Value.String(it) },
-                    description = (source.metadata[FIELD_NAME_DESCRIPTION] as? String)?.let { Value.String(it) },
-                    license = (source.metadata[FIELD_NAME_LICENSE] as? String)?.let { Value.String(it) },
+                    title = Value.String((source.metadata[FIELD_NAME_TITLE] as? String) ?: ""),
+                    description = Value.String((source.metadata[FIELD_NAME_DESCRIPTION] as? String) ?: ""),
+                    license = Value.String((source.metadata[FIELD_NAME_LICENSE] as? String) ?: ""),
                     transient = !persisting
                 )
             )
