@@ -18,7 +18,10 @@
           {
             "name": "FirstContentAggregator",
             "nextExtractor": {
-              "fieldName": "certh"
+              "fieldName": "certh",
+              "nextExtractor": {
+                "fieldName": "metadata"
+              }
             }
           }
         ]

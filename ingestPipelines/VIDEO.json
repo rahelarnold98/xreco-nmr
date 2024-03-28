@@ -33,7 +33,10 @@
                     "nextExtractor": {
                       "fieldName": "time",
                       "nextExtractor": {
-                        "fieldName": "landmark"
+                        "fieldName": "landmark",
+                        "nextExtractor": {
+                          "fieldName": "metadata"
+                        }
                       }
                     }
                   }

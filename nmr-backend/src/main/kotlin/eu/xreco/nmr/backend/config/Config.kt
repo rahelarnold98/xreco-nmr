@@ -3,7 +3,6 @@ package eu.xreco.nmr.backend.config
 import io.minio.MinioClient
 import kotlinx.serialization.Serializable
 import org.vitrivr.engine.core.config.*
-import org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics
 
 /**
  * XRECO NMR backend configuration, deserialized form of config.json-like files.
@@ -31,13 +30,13 @@ data class Config(
         ),
 
         fields = listOf(
+            FieldConfig("metadata", "XRecoMetadata"),
             FieldConfig("file", "FileSourceMetadata"),
             FieldConfig("video", "VideoSourceMetadata"),
             FieldConfig("time", "TemporalMetadata"),
             FieldConfig("averagecolor", "AverageColor"),
             FieldConfig("clip", "CLIP", mapOf("host" to "http://localhost:8888/" )),
             FieldConfig("sphericalharmonics", "SphericalHarmonics"),
-            // TODO add landmarks and CERTH feature as soon as ready
             FieldConfig("certh", "CERTH"),
             FieldConfig("landmark", "Landmarks")
         ),

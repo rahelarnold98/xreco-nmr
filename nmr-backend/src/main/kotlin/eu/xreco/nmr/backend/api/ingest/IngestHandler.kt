@@ -2,6 +2,9 @@ package eu.xreco.nmr.backend.api.ingest
 
 import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.config.MinioConfig
+import eu.xreco.nmr.backend.features.metadata.XRecoMetadataDescriptor.Companion.FIELD_NAME_DESCRIPTION
+import eu.xreco.nmr.backend.features.metadata.XRecoMetadataDescriptor.Companion.FIELD_NAME_LICENSE
+import eu.xreco.nmr.backend.features.metadata.XRecoMetadataDescriptor.Companion.FIELD_NAME_TITLE
 import eu.xreco.nmr.backend.minio.MinioSource
 import eu.xreco.nmr.backend.minio.MinioSource.Companion.FILENAME_TAG_NAME
 import eu.xreco.nmr.backend.minio.MinioSource.Companion.MEDIA_TYPE_TAG_NAME
@@ -25,7 +28,7 @@ import org.vitrivr.engine.index.enumerate.ListEnumerator
 import java.util.*
 
 @OpenApi(
-    summary = "Ingest one (or multiple) images into the XRECO NMR backend.",
+    summary = "Ingest one (or multiple) images into the XReco NMR backend.",
     path = "/api/ingest/image",
     tags = ["Ingest"],
     operationId = "postIngestImage",
@@ -46,10 +49,16 @@ fun ingestImage(context: Context, config: Config, minio: MinioClient, manager: S
     val assets = uploadAssets(context, minio)
 
     /* Construct extraction pipeline */
-    val pipeline = schema.getPipelineBuilder("IMAGE").getPipeline()/* Schedule pipeline and return job ID. */
+    val pipeline = schema.getPipelineBuilder("IMAGE").getPipeline() /* Schedule pipeline and return job ID. */
     val root = pipeline.getLeaves().first().root()
     if (root is ListEnumerator.Instance){
-        for (source in assets){
+        for (source in assets) {
+            /* Extract optional form parameters and append as metadata. */
+            context.formParam(FIELD_NAME_TITLE)?.let { source.metadata[FIELD_NAME_TITLE] = it }
+            context.formParam(FIELD_NAME_DESCRIPTION)?.let { source.metadata[FIELD_NAME_DESCRIPTION] = it }
+            context.formParam(FIELD_NAME_LICENSE)?.let { source.metadata[FIELD_NAME_LICENSE] = it }
+
+            /* Add source. */
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
@@ -58,7 +67,7 @@ fun ingestImage(context: Context, config: Config, minio: MinioClient, manager: S
 }
 
 @OpenApi(
-    summary = "Ingest one (or multiple) videos into the XRECO NMR backend.",
+    summary = "Ingest one (or multiple) videos into the XReco NMR backend.",
     path = "/api/ingest/video",
     tags = ["Ingest"],
     operationId = "postIngestVideo",
@@ -83,6 +92,12 @@ fun ingestVideo(context: Context, config: Config, minio: MinioClient, manager: S
     val root = pipeline.getLeaves().first().root()
     if (root is ListEnumerator.Instance){
         for (source in assets){
+            /* Extract optional form parameters and append as metadata. */
+            context.formParam(FIELD_NAME_TITLE)?.let { source.metadata[FIELD_NAME_TITLE] = it }
+            context.formParam(FIELD_NAME_DESCRIPTION)?.let { source.metadata[FIELD_NAME_DESCRIPTION] = it }
+            context.formParam(FIELD_NAME_LICENSE)?.let { source.metadata[FIELD_NAME_LICENSE] = it }
+
+            /* Add source. */
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
@@ -91,7 +106,7 @@ fun ingestVideo(context: Context, config: Config, minio: MinioClient, manager: S
 }
 
 @OpenApi(
-    summary = "Ingest one (or multiple) models into the XRECO NMR backend.",
+    summary = "Ingest one (or multiple) models into the XReco NMR backend.",
     path = "/api/ingest/model",
     tags = ["Ingest"],
     operationId = "postIngestModel",
@@ -116,6 +131,12 @@ fun ingestModel(context: Context, config: Config, minio: MinioClient, manager: S
     val root = pipeline.getLeaves().first().root()
     if (root is ListEnumerator.Instance){
         for (source in assets){
+            /* Extract optional form parameters and append as metadata. */
+            context.formParam(FIELD_NAME_TITLE)?.let { source.metadata[FIELD_NAME_TITLE] = it }
+            context.formParam(FIELD_NAME_DESCRIPTION)?.let { source.metadata[FIELD_NAME_DESCRIPTION] = it }
+            context.formParam(FIELD_NAME_LICENSE)?.let { source.metadata[FIELD_NAME_LICENSE] = it }
+
+            /* Add source. */
             root.add(source)
         }
         val jobId = executor.extractAsync(pipeline)
@@ -169,7 +190,7 @@ fun ingestStatus(context: Context, manager: SchemaManager, executor: ExecutionSe
     ]
 )
 fun ingestAbort(context: Context, manager: SchemaManager, executor: ExecutionServer) {
-    // TODO for future: What is the sematic for such an abort --> cleanup needed?!?
+    // TODO for future: What is the semantic for such an abort --> cleanup needed?!?
     // XReco discussion --> do we need one at all?
     // vitrivr-engine discussion --> semantic of abort
     val jobId = try {
