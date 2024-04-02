@@ -5,9 +5,6 @@ import eu.xreco.nmr.backend.config.MinioClientSingleton
 import eu.xreco.nmr.backend.config.MinioConfig
 import io.minio.GetObjectTagsArgs
 import io.minio.messages.Tags
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import org.vitrivr.engine.base.features.external.ExternalAnalyser
 import org.vitrivr.engine.core.context.IndexContext
@@ -19,7 +16,6 @@ import org.vitrivr.engine.core.model.descriptor.vector.IntVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Analyser
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
-import org.vitrivr.engine.core.model.query.basics.Distance
 import org.vitrivr.engine.core.model.query.proximity.ProximityQuery
 import org.vitrivr.engine.core.model.retrievable.Retrievable
 import org.vitrivr.engine.core.model.types.Value
@@ -247,27 +243,34 @@ class CERTH : ExternalAnalyser<Model3DContent, FloatVectorDescriptor>() {
      * @return A new [Retriever] instance for this [Analyser]
      * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
      */
-    override fun newRetrieverForContent(
-        field: Schema.Field<Model3DContent, FloatVectorDescriptor>,
-        content: Collection<Model3DContent>,
-        context: QueryContext
-    ): Retriever<Model3DContent, FloatVectorDescriptor> {
-        require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
-
-        /* Extract URL for external content transformation service. */
+    override fun newRetrieverForContent(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, content: Collection<Model3DContent>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
         val host = field.parameters[HOST_PARAMETER_NAME] ?: HOST_PARAMETER_DEFAULT
 
-        /* Extract parameters and construct query. */
-        val descriptor = content.map { this.analyse(it, host) }.first()
-        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
-        val returnDescriptor =
-            context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
-        val query = ProximityQuery<Value.Float>(
-            value = descriptor.vector, k = k.toLong(), fetchVector = returnDescriptor, distance = Distance.COSINE
-        )
+        /* Extract vectors from content. */
+        val vectors = content.map { analyse(it, host) }
 
-        /* Construct retriever. */
-        return this.newRetrieverForQuery(field, query, context)
+        /* Return retriever. */
+        return this.newRetrieverForDescriptors(field, vectors, context)
+    }
+
+
+    /**
+     * Generates and returns a new [CERTHRetriever] instance for this [CERTH].
+     *
+     * @param field The [Schema.Field] to create an [Retriever] for.
+     * @param descriptors An array of [FloatVectorDescriptor] elements to use with the [Retriever]
+     * @param context The [QueryContext] to use with the [Retriever]
+     *
+     * @return A new [Retriever] instance for this [Analyser]
+     * @throws [UnsupportedOperationException], if this [Analyser] does not support the creation of an [Retriever] instance.
+     */
+    override fun newRetrieverForDescriptors(field: Schema.Field<Model3DContent, FloatVectorDescriptor>, descriptors: Collection<FloatVectorDescriptor>, context: QueryContext): Retriever<Model3DContent, FloatVectorDescriptor> {
+        /* Prepare query parameters. */
+        val k = context.getProperty(field.fieldName, "limit")?.toLongOrNull() ?: 1000L
+        val fetchVector = context.getProperty(field.fieldName, "returnDescriptor")?.toBooleanStrictOrNull() ?: false
+
+        /* Return retriever. */
+        return this.newRetrieverForQuery(field, ProximityQuery(value = descriptors.first().vector, k = k, fetchVector = fetchVector), context)
     }
 
     /**
