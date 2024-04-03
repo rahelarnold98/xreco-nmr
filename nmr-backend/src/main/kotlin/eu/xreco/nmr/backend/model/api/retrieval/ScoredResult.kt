@@ -60,7 +60,7 @@ data class ScoredResult(
             /* Append descriptive metadata. */
             val description = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is XRecoMetadataDescriptor }?.descriptor as? XRecoMetadataDescriptor
             result = if (description != null) {
-                result.copy(title = description.title?.value, description = description.description?.value, license = description.description?.value)
+                result.copy(title = description.title?.value, description = description.description?.value, license = description.license?.value)
             } else {
                 result
             }
