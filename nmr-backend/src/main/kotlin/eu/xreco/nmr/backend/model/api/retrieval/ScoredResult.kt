@@ -15,11 +15,19 @@ import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
  * @version 1.0.0
  */
 data class ScoredResult(
-    /** The ID of the source media item (i.e., the video, image or 3D model). */
-    val sourceId: String,
+    /**
+     * The ID of the source asset (i.e., the video, image or 3D model) as ingested.
+     *
+     * Can be used to access the original asset file.
+     */
+    val assetId: String,
 
-    /** The ID of the retrievable (i.e., the segment). */
-    val retrievableId: String,
+    /**
+     * The ID of the part of the asset (i.e., the video segment)
+     *
+     * Can be used to access preview images or perform similarity search.
+     */
+    val partId: String,
 
     /** The assigned score. */
     val score: Double,
@@ -43,37 +51,43 @@ data class ScoredResult(
         /**
          * Generates a [ScoredResult] from a [Retrieved].
          *
-         * @param retrieved The [Retrieved] to map.
+         * @param part The [Retrieved] to map.
          * @return [ScoredResult]
          */
-        fun from(retrieved: Retrieved): ScoredResult {
-            val source = retrieved.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.filter { it.pred == "partOf" }.firstOrNull()?.obj
-            val score = retrieved.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble()
+        fun from(part: Retrieved): ScoredResult {
+            val asset = part.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.firstOrNull { it.pred == "partOf" }?.obj
+            val score = part.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble()
 
             /* Construct result item based on whether source is separate or not. */
-            var result = if (source != null)  {
-                ScoredResult(sourceId = source.second?.id.toString(), retrieved.id.toString(), score ?: 0.0)
-            } else {
-                ScoredResult(sourceId =  retrieved.id.toString(), retrieved.id.toString(), score ?: 0.0)
-            }
+            return if (asset != null) {
+                var result = ScoredResult(assetId = asset.first.toString(), partId = part.id.toString(), score ?: 0.0)
 
-            /* Append descriptive metadata. */
-            val description = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is XRecoMetadataDescriptor }?.descriptor as? XRecoMetadataDescriptor
-            result = if (description != null) {
-                result.copy(title = description.title?.value, description = description.description?.value, license = description.license?.value)
-            } else {
-                result
-            }
+                /* Append temporal metadata. */
+                val temporal = part.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
+                result = if (temporal != null) {
+                    result.copy(start = temporal.startNs.value / 10e9f, end = temporal.endNs.value / 10e9f)
+                } else {
+                    result
+                }
 
-            /* Append temporal metadata. */
-            val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
-            result = if (temporal != null) {
-                result.copy(start = temporal.startNs.value / 10e9f, end = temporal.endNs.value / 10e9f)
+                /* Append descriptive metadata. */
+                val description = asset.second?.attributes?.filterIsInstance<DescriptorAttribute>()?.firstOrNull { it.descriptor is XRecoMetadataDescriptor }?.descriptor as? XRecoMetadataDescriptor
+                if (description != null) {
+                    result.copy(title = description.title?.value, description = description.description?.value, license = description.license?.value)
+                } else {
+                    result
+                }
             } else {
-                result
-            }
+                val result = ScoredResult(assetId = part.id.toString(), partId = part.id.toString(), score ?: 0.0)
 
-            return result
+                /* Append descriptive metadata. */
+                val description = part.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is XRecoMetadataDescriptor }?.descriptor as? XRecoMetadataDescriptor
+                if (description != null) {
+                    result.copy(title = description.title?.value, description = description.description?.value, license = description.license?.value)
+                } else {
+                    result
+                }
+            }
         }
     }
 }
