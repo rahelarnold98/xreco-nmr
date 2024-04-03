@@ -51,7 +51,7 @@ data class Config(
         extractionPipelines = listOf(
             PipelineConfig("IMAGE", "./ingestPipelines/IMAGE.json"),
             PipelineConfig("VIDEO", "./ingestPipelines/VIDEO.json"),
-            //PipelineConfig("MESH", "./ingestPipelines/MESH.json"),
+            PipelineConfig("MESH", "./ingestPipelines/MESH.json"),
         )
     ),
 
