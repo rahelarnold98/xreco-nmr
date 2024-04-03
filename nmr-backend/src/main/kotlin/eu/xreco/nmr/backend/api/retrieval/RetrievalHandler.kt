@@ -9,12 +9,8 @@ import io.javalin.openapi.*
 import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
 import org.vitrivr.engine.core.context.QueryContext
 import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
-import org.vitrivr.engine.core.model.descriptor.struct.metadata.TemporalMetadataDescriptor
 import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
-import org.vitrivr.engine.core.model.retrievable.attributes.DescriptorAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.RelationshipAttribute
-import org.vitrivr.engine.core.model.retrievable.attributes.ScoreAttribute
 import org.vitrivr.engine.query.model.api.InformationNeedDescription
 import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
 import org.vitrivr.engine.query.model.api.input.TextInputData
@@ -102,6 +98,9 @@ fun type(context: Context, schema: Schema) {
         OpenApiParam(name = "text", type = String::class, description = "Text to search for.", required = true),
         OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
     ],
+    queryParams = [
+        OpenApiParam(name = "attribute", type = String::class, description = "Name of the attribute in case of a struct field.", required = true),
+    ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
         OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
@@ -115,6 +114,7 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
     val fieldName = context.pathParam("field")
     val text = context.pathParam("text")
     val pageSize = context.pathParam("pageSize").toInt()
+    val attribute = context.queryParam("attribute")
 
     /* Construct and parse query. */
     val query = InformationNeedDescription(
@@ -122,23 +122,17 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
         operations = mapOf(
             "fulltext" to RetrieverDescription(input = "text", field = fieldName),
             "time" to TransformerDescription("FieldLookup", input = "fulltext", properties = mapOf("field" to "time", "keys" to "start,end")),
-            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf"))
+            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf")),
+            "metadata" to TransformerDescription("FieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license"))
         ),
-        output = "relations",
-        context = QueryContext(global = mapOf("limit" to pageSize.toString()))
+        output = "metadata",
+        context = QueryContext(global = mapOf("limit" to pageSize.toString()), local = attribute?.let { mapOf(fieldName to mapOf("attribute" to attribute)) } ?: emptyMap())
     )
+
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(items = executor.query(retriever).mapNotNull { retrieved ->
-        val source = retrieved.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.filter { it.pred == "partOf" }.firstOrNull()?.obj ?: return@mapNotNull null
-        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
-
-        val startSeconds = temporal?.startNs?.let { it.value / 10e9 }
-        val endSeconds = temporal?.endNs?.let { it.value / 10e9 }
-        val score = retrieved.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble() ?: return@mapNotNull null
-        ScoredResult(sourceId = source.second?.id.toString(), retrieved.id.toString(), score, startSeconds?.toFloat(), endSeconds?.toFloat())
-    })
+    val results = RetrievalResult(items = executor.query(retriever).map(ScoredResult::from))
     context.json(results)
 }
 
@@ -172,22 +166,16 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
         operations = mapOf(
             "retriever" to RetrieverDescription(input = "feature", field = fieldName),
             "time" to TransformerDescription("FieldLookup", input = "retriever", properties = mapOf("field" to "time", "keys" to "start,end")),
-            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf"))
+            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf")),
+            "metadata" to TransformerDescription("FieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license"))
         ),
-        output = "relations",
+        output = "metadata",
         context = QueryContext(global = mapOf("limit" to pageSize.toString()))
     )
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(executor.query(retriever).mapNotNull { retrieved ->
-        val source = retrieved.attributes.filterIsInstance<RelationshipAttribute>().flatMap { it.relationships }.filter { it.pred == "partOf" }.firstOrNull()?.obj ?: return@mapNotNull null
-        val temporal = retrieved.attributes.filterIsInstance<DescriptorAttribute>().firstOrNull { it.descriptor is TemporalMetadataDescriptor }?.descriptor as? TemporalMetadataDescriptor
-        val startSeconds = temporal?.startNs?.let { it.value / 10e9 }
-        val endSeconds = temporal?.endNs?.let { it.value / 10e9 }
-        val score = retrieved.attributes.filterIsInstance<ScoreAttribute>().firstOrNull()?.score?.toDouble() ?: return@mapNotNull null
-        ScoredResult(source.second?.id.toString(), retrieved.id.toString(), score, startSeconds?.toFloat(), endSeconds?.toFloat())
-    })
+    val results = RetrievalResult(items = executor.query(retriever).map(ScoredResult::from))
     context.json(results)
 }
 

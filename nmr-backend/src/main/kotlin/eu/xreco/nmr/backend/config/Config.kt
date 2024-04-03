@@ -24,7 +24,7 @@ data class Config(
         connection = ConnectionConfig(
             database = "CottontailConnectionProvider",
             parameters = mapOf(
-                "host" to (System.getenv("COTTONTAILDB_HOST") ?: "localhost"),
+                "host" to (System.getenv("COTTONTAILDB_HOST") ?: "10.34.58.87"),
                 "port" to (System.getenv("COTTONTAILDB_PORT") ?: "1865")
             )
         ),
