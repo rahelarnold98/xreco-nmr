@@ -38,7 +38,8 @@ data class Config(
             FieldConfig("clip", "CLIP", mapOf("host" to "http://localhost:8888/" )),
             FieldConfig("sphericalharmonics", "SphericalHarmonics"),
             FieldConfig("certh", "CERTH"),
-            FieldConfig("landmark", "Landmarks")
+            FieldConfig("landmark", "Landmarks"),
+            FieldConfig("fulltext", "FullText")
         ),
 
         exporters = listOf(

@@ -20,7 +20,10 @@
             "nextExtractor": {
               "fieldName": "certh",
               "nextExtractor": {
-                "fieldName": "metadata"
+                "fieldName": "metadata",
+                "nextExtractor": {
+                  "fieldName": "fulltext"
+                }
               }
             }
           }
