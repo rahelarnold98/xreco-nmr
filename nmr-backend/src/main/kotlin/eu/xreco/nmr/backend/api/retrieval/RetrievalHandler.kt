@@ -99,7 +99,7 @@ fun type(context: Context, schema: Schema) {
         OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
     ],
     queryParams = [
-        OpenApiParam(name = "attribute", type = String::class, description = "Name of the attribute in case of a struct field.", required = true),
+        OpenApiParam(name = "attribute", type = String::class, description = "Name of the attribute in case of a struct field.", required = false),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
@@ -120,12 +120,13 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
     val query = InformationNeedDescription(
         inputs = mapOf("text" to TextInputData(text)),
         operations = mapOf(
-            "fulltext" to RetrieverDescription(input = "text", field = fieldName),
-            "time" to TransformerDescription("FieldLookup", input = "fulltext", properties = mapOf("field" to "time", "keys" to "start,end")),
-            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf")),
-            "metadata" to TransformerDescription("FieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license"))
+            "retriever" to RetrieverDescription(input = "text", field = fieldName),
+            "time" to TransformerDescription("FieldLookup", input = "retriever", properties = mapOf("field" to "time", "keys" to "start,end")),
+            "metadata1" to TransformerDescription("FieldLookup", input = "time", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+            "relations" to TransformerDescription("RelationExpander", input = "metadata1", properties = mapOf("outgoing" to "partOf")),
+            "metadata2" to TransformerDescription("ObjectFieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
         ),
-        output = "metadata",
+        output = "metadata2",
         context = QueryContext(global = mapOf("limit" to pageSize.toString()), local = attribute?.let { mapOf(fieldName to mapOf("attribute" to attribute)) } ?: emptyMap())
     )
 
@@ -166,10 +167,11 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
         operations = mapOf(
             "retriever" to RetrieverDescription(input = "feature", field = fieldName),
             "time" to TransformerDescription("FieldLookup", input = "retriever", properties = mapOf("field" to "time", "keys" to "start,end")),
-            "relations" to TransformerDescription("RelationExpander", input = "time", properties = mapOf("outgoing" to "partOf")),
-            "metadata" to TransformerDescription("FieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license"))
+            "metadata1" to TransformerDescription("FieldLookup", input = "time", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+            "relations" to TransformerDescription("RelationExpander", input = "metadata1", properties = mapOf("outgoing" to "partOf")),
+            "metadata2" to TransformerDescription("ObjectFieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
         ),
-        output = "metadata",
+        output = "metadata2",
         context = QueryContext(global = mapOf("limit" to pageSize.toString()))
     )
     val retriever = QueryParser(schema).parse(query)
