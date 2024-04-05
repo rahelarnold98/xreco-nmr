@@ -25,7 +25,7 @@ data class MinioConfig(
         const val ASSETS_BUCKET = "private"
 
         /** Bucket used to store thumbnails. */
-        const val PREVIEW_BUCKET = "previews"
+        const val PREVIEW_BUCKET = "private"
     }
 
     /**
