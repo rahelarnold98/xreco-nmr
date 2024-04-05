@@ -39,7 +39,7 @@ data class Config(
             FieldConfig("sphericalharmonics", "SphericalHarmonics"),
             FieldConfig("certh", "CERTH"),
             FieldConfig("landmark", "Landmarks"),
-            FieldConfig("fulltext", "FullText")
+            FieldConfig("fulltext", "Fulltext")
         ),
 
         exporters = listOf(
