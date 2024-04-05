@@ -133,7 +133,7 @@ fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(items = executor.query(retriever).map(ScoredResult::from))
+    val results = RetrievalResult(items = executor.query(retriever).map { ScoredResult.from(it, context)} )
     context.json(results)
 }
 
@@ -177,7 +177,7 @@ fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* 
     val retriever = QueryParser(schema).parse(query)
 
     /* Execute query and return results. */
-    val results = RetrievalResult(items = executor.query(retriever).map(ScoredResult::from))
+    val results = RetrievalResult(items = executor.query(retriever).map{ ScoredResult.from(it, context)} )
     context.json(results)
 }
 
