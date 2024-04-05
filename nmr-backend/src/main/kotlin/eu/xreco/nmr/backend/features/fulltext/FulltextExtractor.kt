@@ -25,7 +25,7 @@ class FulltextExtractor(
      * @param retrievable The [Retrievable] to check.
      * @return True on match, false otherwise,
      */
-    override fun matches(retrievable: Retrievable): Boolean = retrievable.hasAttribute(SourceAttribute::class.java)
+    override fun matches(retrievable: Retrievable): Boolean = retrievable.hasAttribute(DescriptorAttribute::class.java)
 
     /**
      * Internal method to perform extraction on [Retrievable].
