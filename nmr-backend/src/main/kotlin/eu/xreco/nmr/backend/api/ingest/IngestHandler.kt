@@ -214,26 +214,32 @@ fun ingestAbort(context: Context, manager: SchemaManager, executor: ExecutionSer
  * @param minio The [MinioClient].
  * @return [List] of [MinioSource]s.
  */
-private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> = ctx.uploadedFiles("files").map { file ->
-    val assetId = UUID.randomUUID()
-    val extension = file.extension().replace(".","")
-    try {
-        file.content().use { input ->
-            minio.putObject(
-                PutObjectArgs.builder().bucket(MinioConfig.ASSETS_BUCKET).`object`(assetId.toString())
-                    .contentType(file.contentType())
-                    .tags(
-                        mapOf(
-                            FILENAME_TAG_NAME to file.filename(),
-                            MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
-                            MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
-                            TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),
-                        )
-                    ).stream(input, file.size(), -1).build()
-            )
+private fun uploadAssets(ctx: Context, minio: MinioClient): List<MinioSource> {
+    val files = ctx.uploadedFiles("files")
+    if (files.isEmpty()) throw ErrorStatusException(400, "No files uploaded (field 'files' is empty).")
+    return ctx.uploadedFiles("files").map { file ->
+        val assetId = UUID.randomUUID()
+        val extension = file.extension().replace(".","")
+        try {
+            file.content().use { input ->
+                minio.putObject(
+                    PutObjectArgs.builder().bucket(MinioConfig.ASSETS_BUCKET).`object`(assetId.toString())
+                        .contentType(file.contentType())
+                        .tags(
+                            mapOf(
+                                FILENAME_TAG_NAME to file.filename(),
+                                MEDIA_TYPE_TAG_NAME to FileEnding.objectType(extension).toString(),
+                                MIME_TYPE_TAG_NAME to MimeTypeHelper.mimeType(extension),
+                                TIMESTAMP_TAG_NAME to System.currentTimeMillis().toString(),
+                            )
+                        ).stream(input, file.size(), -1).build()
+                )
+            }
+            MinioSource(assetId, MinioConfig.ASSETS_BUCKET, minio)
+        } catch (e: ErrorResponseException) {
+            throw ErrorStatusException(500, "Failed to upload asset ${file.filename()} due to a min.io error: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, "Failed to upload asset ${file.filename()} due to a malformed request: ${e.message}")
         }
-        MinioSource(assetId, MinioConfig.ASSETS_BUCKET, minio)
-    } catch (e: ErrorResponseException) {
-        throw ErrorStatusException(500, "Failed to upload asset ${file.filename()} due to a min.io error: ${e.message}")
     }
 }
