@@ -7,4 +7,4 @@ import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
 import org.vitrivr.engine.core.model.metamodel.Schema
 import org.vitrivr.engine.core.model.query.Query
 
-class FullTextRetriever(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext) : AbstractRetriever<ContentElement<*>, StringDescriptor>(field, query, context)
+class FulltextRetriever(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext) : AbstractRetriever<ContentElement<*>, StringDescriptor>(field, query, context)

@@ -1,6 +1,4 @@
 eu.xreco.nmr.backend.features.landmarks.Landmarks
 eu.xreco.nmr.backend.features.certh.CERTH
 eu.xreco.nmr.backend.features.metadata.XRecoMetadata
-eu.xreco.nmr.backend.features.fulltext.FullText
-
-org.vitrivr.engine.model3d.features.sphericalharmonics.SphericalHarmonics
+eu.xreco.nmr.backend.features.fulltext.Fulltext

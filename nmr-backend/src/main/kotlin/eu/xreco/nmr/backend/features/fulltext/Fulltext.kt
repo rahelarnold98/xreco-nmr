@@ -19,12 +19,12 @@ import org.vitrivr.engine.core.operators.Operator
 import org.vitrivr.engine.core.operators.retrieve.Retriever
 import java.util.*
 
-class FullText: Analyser<ContentElement<*>, StringDescriptor> {
+class Fulltext: Analyser<ContentElement<*>, StringDescriptor> {
     override val contentClasses = setOf(ContentElement::class)
     override val descriptorClass = StringDescriptor::class
 
     /**
-     * Generates a prototypical [StringDescriptor] for this [FullText].
+     * Generates a prototypical [StringDescriptor] for this [Fulltext].
      *
      * @return [StringDescriptor]
      */
@@ -32,25 +32,26 @@ class FullText: Analyser<ContentElement<*>, StringDescriptor> {
 
 
     /**
-     * Generates and returns a new [FullTextRetriever] instance for this [FullText].
+     * Generates and returns a new [FulltextRetriever] instance for this [Fulltext].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param query The [Query] to use with the [Retriever].
      * @param context The [QueryContext] to use with the [Retriever].
      *
-     * @return A new [FullTextRetriever] instance for this [XRecoMetadata]
+     * @return A new [FulltextRetriever] instance for this [XRecoMetadata]
      */
-    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext) = FullTextRetriever(field, query, context)
+    override fun newRetrieverForQuery(field: Schema.Field<ContentElement<*>, StringDescriptor>, query: Query, context: QueryContext) =
+        FulltextRetriever(field, query, context)
 
     /**
-     * Generates and returns a new [FullTextRetriever] instance for this [FullText].
+     * Generates and returns a new [FulltextRetriever] instance for this [Fulltext].
      *
      * @param field The [Schema.Field] to create an [Retriever] for.
      * @param content An array of [Content] elements to use with the [Retriever]
      * @param context The [QueryContext] to use with the [Retriever]
      * @return [FulltextRetriever]
      */
-    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): FullTextRetriever {
+    override fun newRetrieverForContent(field: Schema.Field<ContentElement<*>, StringDescriptor>, content: Collection<ContentElement<*>>, context: QueryContext): eu.xreco.nmr.backend.features.fulltext.FulltextRetriever {
         require(field.analyser == this) { "The field '${field.fieldName}' analyser does not correspond with this analyser. This is a programmer's error!" }
 
         /* Prepare query parameters. */
@@ -71,8 +72,8 @@ class FullText: Analyser<ContentElement<*>, StringDescriptor> {
      *
      * @return [XRecoMetadataExtractor]
      */
-    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FullTextExtractor {
+    override fun newExtractor(field: Schema.Field<ContentElement<*>, StringDescriptor>, input: Operator<Retrievable>, context: IndexContext, persisting: Boolean, parameters: Map<String, Any>): FulltextExtractor {
         require(field.analyser == this) { "Field type is incompatible with analyser. This is a programmer's error!" }
-        return FullTextExtractor(input, field, persisting)
+        return FulltextExtractor(input, field, persisting)
     }
 }
