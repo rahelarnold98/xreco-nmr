@@ -59,7 +59,7 @@ fun main(args: Array<String>) {
     val executor = ExecutionServer()
 
     /* Initialize MinIO client. */
-    val minio = MinioClient.builder().endpoint(config.minio.url).credentials(config.minio.accessKey, config.minio.secretKey).build()
+    val minio = config.minio.newClient()
 
     /* Create and start Javalin instance. */
     javalin().before {

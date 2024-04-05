@@ -22,7 +22,7 @@ data class MinioConfig(
 ) {
     companion object {
         /** Bucket used to store assets. */
-        const val ASSETS_BUCKET = "assets"
+        const val ASSETS_BUCKET = "private"
 
         /** Bucket used to store thumbnails. */
         const val PREVIEW_BUCKET = "previews"
