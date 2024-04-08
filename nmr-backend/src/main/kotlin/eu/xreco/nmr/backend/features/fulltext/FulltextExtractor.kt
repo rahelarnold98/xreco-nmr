@@ -37,12 +37,12 @@ class FulltextExtractor(
         val text = StringBuilder()
         for (attribute in retrievable.filteredAttributes(DescriptorAttribute::class.java)) {
             when (val descriptor = attribute.descriptor) {
-                is LabelDescriptor -> text.append(descriptor.label.value)
-                is StringDescriptor -> text.append(descriptor.value.value)
+                is LabelDescriptor -> text.append(" " + descriptor.label.value)
+                is StringDescriptor -> text.append(" " + descriptor.value.value)
                 is XRecoMetadataDescriptor -> {
-                    text.append(descriptor.title)
-                    text.append(descriptor.description)
-                    text.append(descriptor.license)
+                    text.append(" " + descriptor.title)
+                    text.append(" " + descriptor.description)
+                    text.append(" " + descriptor.license)
                 }
             }
         }
