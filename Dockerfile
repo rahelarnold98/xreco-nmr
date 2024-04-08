@@ -1,5 +1,6 @@
 FROM gradle:jdk21 AS build
 
+
 COPY --chown=gradle:gradle . /src
 WORKDIR /src
 RUN gradle --no-daemon distTar
