@@ -49,6 +49,7 @@ fun Javalin.initializeRoutes(config: Config, manager: SchemaManager, runtime: Ex
 
         /* Access to MinIO resources. */
         ApiBuilder.path("assets") {
+            ApiBuilder.get("metadata/{assetId}") { getAssetMetadata(it, schema, runtime) }
             ApiBuilder.get("content/{assetId}") { getAssetResource(it, minio) }
             ApiBuilder.get("preview/{assetId}") { getPreviewResource(it, minio) }
         }
