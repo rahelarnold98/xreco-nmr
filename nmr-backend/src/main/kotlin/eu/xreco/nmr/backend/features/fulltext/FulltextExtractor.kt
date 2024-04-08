@@ -40,9 +40,9 @@ class FulltextExtractor(
                 is LabelDescriptor -> text.append(" " + descriptor.label.value)
                 is StringDescriptor -> text.append(" " + descriptor.value.value)
                 is XRecoMetadataDescriptor -> {
-                    text.append(" " + descriptor.title)
-                    text.append(" " + descriptor.description)
-                    text.append(" " + descriptor.license)
+                    text.append(" " + descriptor.title?.value)
+                    text.append(" " + descriptor.description?.value)
+                    text.append(" " + descriptor.license?.value)
                 }
             }
         }
