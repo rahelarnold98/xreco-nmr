@@ -1,6 +1,13 @@
 {
+  "minIO": {
+    "endPoint": "localhost",
+    "port": 9000,
+    "accessKey": "minioadmin",
+    "secretKey": "minioadmin"
+  },
   "database":{
-    "host":"10.34.58.87"
+    "host":"localhost",
+    "port": 7070
   },
   "media": {
     "thumbnails":"/Users/rahelarnold/Documents/XReco/RAI-Landmarks/videos/sec",

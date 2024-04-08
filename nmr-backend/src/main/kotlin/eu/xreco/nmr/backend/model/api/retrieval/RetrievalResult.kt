@@ -7,4 +7,4 @@ package eu.xreco.nmr.backend.model.api.retrieval
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class RetrievalResult(val page: Int, val pageSize: Int, val count: Long, val items: List<ScoredMediaItem>)
+data class RetrievalResult(val items: List<ScoredResult>)

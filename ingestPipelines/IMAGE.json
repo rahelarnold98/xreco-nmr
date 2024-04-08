@@ -1,0 +1,44 @@
+{
+  "schema": "xreco",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "MinioResolver"
+  },
+  "enumerator": {
+    "name": "ListEnumerator",
+    "parameters": {
+      "depth": "5",
+      "mediaTypes": "IMAGE"
+    },
+    "next": {
+      "name": "ImageDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "FirstContentAggregator",
+            "nextExtractor": {
+              "fieldName": "clip",
+              "nextExporter": {
+                "name": "ThumbnailExporter",
+                "exporterName": "thumbnail",
+                  "nextExtractor": {
+                    "fieldName": "time",
+                    "nextExtractor": {
+                      "fieldName": "landmark",
+                      "nextExtractor": {
+                        "fieldName": "metadata",
+                        "nextExtractor": {
+                          "fieldName": "fulltext"
+                        }
+                      }
+                    }
+                  }
+                }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

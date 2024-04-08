@@ -1,4 +1,5 @@
-FROM gradle:jdk17 AS build
+FROM gradle:jdk21 AS build
+
 
 COPY --chown=gradle:gradle . /src
 WORKDIR /src
@@ -6,11 +7,15 @@ RUN gradle --no-daemon distTar
 WORKDIR /src/nmr-backend/build/distributions/
 RUN tar xf ./nmr-backend.tar
 
-FROM eclipse-temurin:17-jre
+FROM openjdk:21-jdk
 
-COPY config.json /
+COPY ingestPipelines /ingestPipelines
+
+
 COPY --from=build /src/nmr-backend/build/distributions/nmr-backend /nmr-backend
 
-EXPOSE 8080
+EXPOSE 7070
 
-ENTRYPOINT /nmr-backend/bin/nmr-backend /config.json
+RUN microdnf install findutils
+
+ENTRYPOINT /nmr-backend/bin/nmr

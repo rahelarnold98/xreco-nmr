@@ -19,8 +19,6 @@ class BaseCommand(client: SimpleClient, config: Config) : NoOpCliktCommand(name 
         context { helpFormatter = CliktHelpFormatter() }
 
         this.subcommands(
-            SetupCommand(client, config.database.schemaName),
-            ImportCommand(client, config.database.schemaName),
             QuitCommand()
         )
     }

@@ -1,42 +1,36 @@
 package eu.xreco.nmr.backend.api.retrieval
 
 import eu.xreco.nmr.backend.api.Retrieval
-import eu.xreco.nmr.backend.config.Config
 import eu.xreco.nmr.backend.model.api.retrieval.*
 import eu.xreco.nmr.backend.model.api.status.ErrorStatus
 import eu.xreco.nmr.backend.model.api.status.ErrorStatusException
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import org.vitrivr.cottontail.client.SimpleClient
-import org.vitrivr.cottontail.client.language.basics.Direction
-import org.vitrivr.cottontail.client.language.basics.Distances
-import org.vitrivr.cottontail.client.language.basics.predicate.And
-import org.vitrivr.cottontail.client.language.basics.predicate.Compare
-import org.vitrivr.cottontail.client.language.dql.Query
-import org.vitrivr.cottontail.core.values.FloatVectorValue
+import org.vitrivr.engine.core.config.pipeline.execution.ExecutionServer
+import org.vitrivr.engine.core.context.QueryContext
+import org.vitrivr.engine.core.model.descriptor.scalar.StringDescriptor
+import org.vitrivr.engine.core.model.descriptor.vector.FloatVectorDescriptor
+import org.vitrivr.engine.core.model.metamodel.Schema
+import org.vitrivr.engine.query.model.api.InformationNeedDescription
+import org.vitrivr.engine.query.model.api.input.RetrievableIdInputData
+import org.vitrivr.engine.query.model.api.input.TextInputData
+import org.vitrivr.engine.query.model.api.operator.RetrieverDescription
+import org.vitrivr.engine.query.model.api.operator.TransformerDescription
+import org.vitrivr.engine.query.parsing.QueryParser
 import java.util.*
 import kotlin.FloatArray
 import kotlin.Int
 import kotlin.String
 
 @OpenApi(
-    summary = "Get entity of given element",
-    path = "/api/retrieval/lookup/{elementId}/{entity}",
+    summary = "Returns the descriptor for the given media resource.",
+    path = "/api/retrieval/lookup/{field}/{retrievableId}",
     tags = [Retrieval],
-    operationId = "getValueOfElement",
+    operationId = "getDescriptor",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(
-            name = "elementId",
-            type = String::class,
-            description = "Id of element which will be returned",
-            required = true
-        ),
-        OpenApiParam(
-            name = "entity", type = String::class, description = "Descriptor to retrieve data", required = true
-        ),
+        OpenApiParam(name = "retrievableId", type = String::class, description = "ID of retrievable for which to return the descriptor.", required = true),
+        OpenApiParam(name = "field", type = String::class, description = "Descriptor to retrieve data for.", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(Text::class)]),
@@ -46,101 +40,32 @@ import kotlin.String
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    val elementId = context.pathParam("elementId")
-    val entity = context.pathParam("entity")
+fun lookup(context: Context, schema: Schema) {
+    /* Extract necessary parameters. */
+    val fieldName = context.pathParam("field")
+    val retrievableId = UUID.fromString(context.pathParam("retrievableId"))
 
-    try {
+    /* Extract field and return it. */
+    val field = schema[fieldName] ?: throw ErrorStatusException(404, "Could not find field '${fieldName}' in schema ${schema.name}.")
+    val reader = field.getReader()
 
-        val column: String
-        column = when (entity) {
-            "features_landmark" -> {
-                "label"
-            }
-
-            "features_clip" -> {
-                "feature"
-            }
-
-            else -> {
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}.${entity} does not exist."
-                )
-            }
-        }
-
-        // prepare query
-        val query = Query("${config.database.schemaName}.${entity}").where(Compare("mediaResourceId", "=", elementId))
-            .select(column).distinct(column)
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        when (entity) {
-            "features_landmark" -> {
-                val list = LinkedList<Text>()
-                results.forEach { t ->
-                    list.add(Text(t.asString(column)!!))
-                }
-                context.json(list)
-
-            }
-
-            "features_clip" -> {
-                val list = LinkedList<FloatArray>()
-                //
-                results.forEach { t ->
-                    // TODO fill
-                    list.add(t.asFloatVector("feature")!!)
-                }
-                //val floatArray = list.toFloatArray()
-                context.json(list)
-            }
-
-            else -> {
-                throw ErrorStatusException(
-                    400, "The requested element '${config.database.schemaName}.${entity} does not exist."
-                )
-            }
-        }
-
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400,
-                    "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested element '${config.database.schemaName}.${entity}.${elementId} could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
-        }
+    /* Extract descriptor and return it. */
+    when (val descriptor = reader.getBy(retrievableId, "retrievableId")) {
+        is FloatVectorDescriptor -> context.json(descriptor.vector)
+        is StringDescriptor -> context.json(Text(descriptor.value.value))
+        else -> throw ErrorStatusException(400, "Unsupported feature type.")
     }
 }
 
 @OpenApi(
-    summary = "Get type of given element",
-    path = "/api/retrieval/type/{elementId}",
+    summary = "Get type of given retrievable.",
+    path = "/api/retrieval/type/{retrievableId}",
     tags = [Retrieval],
-    operationId = "getTypeOfElement",
+    operationId = "getRetrievableType",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(
-            name = "elementId",
-            type = String::class,
-            description = "Id of element to retrieve type of",
-            required = true
-        )
-    ],
+        OpenApiParam(name = "retrievableId", type = String::class, description = "ID of retrievable which to lookup the (media) type for.", required = true)
+     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(MediaType::class)]),
         OpenApiResponse("200", [OpenApiContent(FloatArray::class)]),
@@ -149,58 +74,32 @@ fun lookup(context: Context, client: SimpleClient, config: Config) {/* TODO impl
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun type(context: Context, client: SimpleClient, config: Config) {
-    val elementId = context.pathParam("elementId")
-    try {
+fun type(context: Context, schema: Schema) {
+    /* Extract necessary parameters. */
+    val retrievableId = UUID.fromString(context.pathParam("retrievableId"))
 
-        // prepare query
-        val query = Query("${config.database.schemaName}.media_resources").where(Compare("mediaResourceId", "=", elementId))
-            .select("type")
-
-        // execute query
-        val results = client.query(query)
-
-        // save results as LinkedList
-        val list = LinkedList<MediaType>()
-        results.forEach { t ->
-            list.add(getMediaType(t.asInt("type")!!))
-        }
-        context.json(list)
-
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.INTERNAL -> {
-                throw ErrorStatusException(
-                    400,
-                    "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
-                )
-            }
-
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(
-                404, "The requested element '${config.database.schemaName}.${"media_resources"}.${elementId} could not be found."
-            )
-
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-
-            else -> {
-                throw e.message?.let { ErrorStatusException(400, it) }!!
-            }
-        }
-    }
+    /* Extract field and return it. */
+    val reader = schema.connection.getRetrievableReader()
+    val type = reader[retrievableId]?.type?.let { type ->
+        type.split(":").getOrNull(1)?.uppercase()?.let { MediaType.valueOf(it) } ?: MediaType.UNKNOWN
+    } ?: throw ErrorStatusException(404, "Failed to find retrievable for ID $retrievableId.")
+    context.json(type)
 }
 
 
 @OpenApi(
     summary = "Issues a fulltext query.",
-    path = "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}",
+    path = "/api/retrieval/text/{field}/{text}/{pageSize}",
     tags = [Retrieval],
     operationId = "getSearchFulltext",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
+        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query (i.e., the feature to compare).", required = true),
         OpenApiParam(name = "text", type = String::class, description = "Text to search for.", required = true),
-        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of a single results page.", required = true),
-        OpenApiParam(name = "page", type = Int::class, description = "Requested page of results. Zero-based index (first page = 0).", required = true)
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
+    ],
+    queryParams = [
+        OpenApiParam(name = "attribute", type = String::class, description = "Name of the attribute in case of a struct field.", required = false),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
@@ -210,57 +109,44 @@ fun type(context: Context, client: SimpleClient, config: Config) {
     ]
 )
 
-fun getFulltext(context: Context, client: SimpleClient, config: Config) {
+fun getFulltext(context: Context, schema: Schema, executor: ExecutionServer) {
+    /* Extract necessary parameters. */
+    val fieldName = context.pathParam("field")
     val text = context.pathParam("text")
-    val entity = context.pathParam("entity")
     val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
-    try {
-        /* Determine how many entries can be found by the query. */
-        var count = 0L
-        val countQuery = Query("${config.database.schemaName}.$entity").fulltext("label", text, "score").count()
-        client.query(countQuery).forEach {
-            count = it.asLong(0)!!
-        }
+    val attribute = context.queryParam("attribute")
 
-        /* Query and save results to list*/
-        val list = ArrayList<ScoredMediaItem>(pageSize)
-        val query = Query("${config.database.schemaName}.$entity")
-            .fulltext("label", text, "score")
-            .select("mediaResourceId")
-            .select("start")
-            .select("end")
-            .select("rep")
-            .order("score", Direction.DESC)
-            .limit(pageSize.toLong()).skip(page * pageSize.toLong())
+    /* Construct and parse query. */
+    val query = InformationNeedDescription(
+        inputs = mapOf("text" to TextInputData(text)),
+        operations = mapOf(
+            "retriever" to RetrieverDescription(input = "text", field = fieldName),
+            "time" to TransformerDescription("FieldLookup", input = "retriever", properties = mapOf("field" to "time", "keys" to "start,end")),
+            "metadata1" to TransformerDescription("FieldLookup", input = "time", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+            "relations" to TransformerDescription("RelationExpander", input = "metadata1", properties = mapOf("outgoing" to "partOf")),
+            "metadata2" to TransformerDescription("ObjectFieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+        ),
+        output = "metadata2",
+        context = QueryContext(global = mapOf("limit" to pageSize.toString()), local = attribute?.let { mapOf(fieldName to mapOf("attribute" to attribute)) } ?: emptyMap())
+    )
 
-        client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
-        }
+    val retriever = QueryParser(schema).parse(query)
 
-        /* Send results. */
-        context.json(RetrievalResult(page, pageSize, count, list))
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Connection is currently not available.")
-            else -> throw ErrorStatusException(400, e.message ?: "Unknown error")
-        }
-    }
+    /* Execute query and return results. */
+    val results = RetrievalResult(items = executor.query(retriever).map { ScoredResult.from(it, context)} )
+    context.json(results)
 }
 
 @OpenApi(
-    summary = "Issues a similarity query based on a provided media resource id.",
-    path = "/api/retrieval/similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}",
+    summary = "Issues a similarity query based on a provided retrievable ID (i.e., finds entries considered similar given the example).",
+    path = "/api/retrieval/similarity/{field}/{retrievableId}/{pageSize}",
     tags = [Retrieval],
     operationId = "getSearchSimilar",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(name = "entity", type = String::class, description = "Name of the entity to query.", required = true),
-        OpenApiParam(name = "mediaResourceId", type = String::class, description = "ID of the media resource to find similar entries for.", required = true),
-        OpenApiParam(name = "timestamp", type = Long::class, description = "The exact timestamp of to find similar entries for.", required = true),
-        OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
-        OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
+        OpenApiParam(name = "field", type = String::class, description = "Name of the field to query (i.e., the feature to compare).", required = true),
+        OpenApiParam(name = "retrievableId", type = String::class, description = "ID of the retrievable to find similar entries for.", required = true),
+        OpenApiParam(name = "pageSize", type = Int::class, description = "Number of results requested.", required = true),
     ],
     responses = [
         OpenApiResponse("200", [OpenApiContent(RetrievalResult::class)]),
@@ -269,64 +155,30 @@ fun getFulltext(context: Context, client: SimpleClient, config: Config) {
         OpenApiResponse("503", [OpenApiContent(ErrorStatus::class)]),
     ]
 )
-fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO implement*/
-    /* Extract path parameters. */
-    val mediaResourceId = context.pathParam("mediaResourceId")
-    val entity = context.pathParam("entity")
-    val timestamp = (context.pathParam("timestamp").toLongOrNull() ?: 0L)
+fun getSimilar(context: Context, schema: Schema, executor: ExecutionServer) {/* TODO implement*/
+    /* Extract necessary parameters. */
+    val fieldName = context.pathParam("field")
+    val retrievableId = context.pathParam("retrievableId")
     val pageSize = context.pathParam("pageSize").toInt()
-    val page = context.pathParam("page").toInt()
 
-    /* Handle similarity (more-like-this) query. */
-    try {
-        /* Extract query vector. */
-        val exampleQuery = Query("${config.database.schemaName}.${entity}").where(
-            And(
-                Compare("mediaResourceId", "=", mediaResourceId),
-                And(
-                    Compare("start", ">=", timestamp),
-                    Compare("end", "<=", timestamp)
-                )
-            )
-        ).select("feature")
-        val vector: FloatArray = client.query(exampleQuery).use { result ->
-            if (result.hasNext()) {
-                result.next().asFloatVector("feature")!!
-            } else {
-                throw ErrorStatusException(404, "Could not find feature '${entity}' for media resource ${mediaResourceId}.")
-            }
-        }
+    /* Construct and parse query. */
+    val query = InformationNeedDescription(
+        inputs = mapOf("feature" to RetrievableIdInputData(retrievableId)),
+        operations = mapOf(
+            "retriever" to RetrieverDescription(input = "feature", field = fieldName),
+            "time" to TransformerDescription("FieldLookup", input = "retriever", properties = mapOf("field" to "time", "keys" to "start,end")),
+            "metadata1" to TransformerDescription("FieldLookup", input = "time", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+            "relations" to TransformerDescription("RelationExpander", input = "metadata1", properties = mapOf("outgoing" to "partOf")),
+            "metadata2" to TransformerDescription("ObjectFieldLookup", input = "relations", properties = mapOf("field" to "metadata", "keys" to "title,description,license")),
+        ),
+        output = "metadata2",
+        context = QueryContext(global = mapOf("limit" to pageSize.toString()))
+    )
+    val retriever = QueryParser(schema).parse(query)
 
-        /* Determine how many entries can be found by the query. */
-        val countQuery = Query("${config.database.schemaName}.$entity").count()
-        val count = client.query(countQuery).use {
-            it.next().asLong(0)!!
-        }
-
-        /* Issue similarity search. */
-        val list = ArrayList<ScoredMediaItem>(pageSize)
-        val query = Query("${config.database.schemaName}.${entity}").distance(
-            "feature", FloatVectorValue(vector), Distances.EUCLIDEAN, "score"
-        ).select("mediaResourceId")
-        .select("start")
-        .select("end")
-            .select("rep")
-        .order("score", Direction.ASC)
-        .limit(pageSize.toLong()).skip(page * pageSize.toLong())
-
-        client.query(query).forEach { t ->
-            list.add(ScoredMediaItem(t.asString("mediaResourceId")!!, t.asDouble("score")!!, t.asFloat("start")!!, t.asFloat("end")!!,  t.asFloat("rep")!!))
-        }
-
-        /* Send results. */
-        context.json(RetrievalResult(page, pageSize, count, list))
-    } catch (e: StatusRuntimeException) {
-        when (e.status.code) {
-            Status.Code.NOT_FOUND -> throw ErrorStatusException(404, "The requested entity '${config.database.schemaName}.${entity}' could not be found.")
-            Status.Code.UNAVAILABLE -> throw ErrorStatusException(503, "Database is currently not available.")
-            else -> ErrorStatusException(400, e.message ?: "Unknown error")
-        }
-    }
+    /* Execute query and return results. */
+    val results = RetrievalResult(items = executor.query(retriever).map{ ScoredResult.from(it, context)} )
+    context.json(results)
 }
 
 @OpenApi(
@@ -336,9 +188,7 @@ fun getSimilar(context: Context, client: SimpleClient, config: Config) {/* TODO 
     operationId = "getFilterQuery",
     methods = [HttpMethod.GET],
     pathParams = [
-        OpenApiParam(
-            name = "condition", type = String::class, description = "Condition to filter collection", required = true
-        ),
+        OpenApiParam(name = "condition", type = String::class, description = "Condition to filter collection", required = true),
         OpenApiParam(name = "pageSize", type = Int::class, description = "Page size of results", required = true),
         OpenApiParam(name = "page", type = Int::class, description = "Request page of results", required = true),
     ],

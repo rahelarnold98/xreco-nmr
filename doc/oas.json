@@ -2,656 +2,19 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "NMR Backend API",
-    "summary" : null,
-    "description" : "API for XREco Neural Media Repository (NMR) backend, Version 1.0.0",
-    "termsOfService" : null,
-    "contact" : null,
-    "license" : null,
-    "version" : "1.0.0"
+    "version" : "1.0.0",
+    "description" : "API for XREco Neural Media Repository (NMR) backend, Version 1.0.0"
   },
   "paths" : {
-    "/api/authentication/logout/{username}" : {
-      "get" : {
-        "tags" : [ "Authentication" ],
-        "summary" : "Logout function for a user.",
-        "operationId" : "getLogout",
-        "parameters" : [ {
-          "name" : "username",
-          "in" : "path",
-          "description" : "Username of user logging out",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/authentication/{username}/{password}" : {
-      "get" : {
-        "tags" : [ "Authentication" ],
-        "summary" : "Login function for a user.",
-        "operationId" : "getLogin",
-        "parameters" : [ {
-          "name" : "username",
-          "in" : "path",
-          "description" : "Username of user logging in",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "password",
-          "in" : "path",
-          "description" : "Password of user logging in",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/list/all" : {
-      "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "List all existing baskets.",
-        "operationId" : "getAllBaskets",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/BasketList"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/list/{userId}" : {
-      "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "List all baskets of a user.",
-        "operationId" : "getBasketsOfUser",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "Id of user",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/{basketId}" : {
-      "delete" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Deletes a specific basket.",
-        "operationId" : "deleteBasket",
-        "parameters" : [ {
-          "name" : "basketId",
-          "in" : "path",
-          "description" : "ID of basket that should be deleted.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/{basketId}/{mediaResourceId}" : {
-      "put" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Adds a specific element to a specific basket.",
-        "operationId" : "putToBasket",
-        "parameters" : [ {
-          "name" : "basketId",
-          "in" : "path",
-          "description" : "ID of the basket to add element to.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "mediaResourceId",
-          "in" : "path",
-          "description" : "ID of the media resource to add.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basket/{basketName}" : {
-      "post" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Creates a new basket.",
-        "operationId" : "postBasket",
-        "parameters" : [ {
-          "name" : "basketName",
-          "in" : "path",
-          "description" : "Name of basket that should be created.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "Basket" ],
-        "summary" : "List all elements of a specific basket.",
-        "operationId" : "getElementsInBasket",
-        "parameters" : [ {
-          "name" : "basketName",
-          "in" : "path",
-          "description" : "Name of basket",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/BasketElement"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/basketName/{basketId}/{mediaResourceId}" : {
-      "delete" : {
-        "tags" : [ "Basket" ],
-        "summary" : "Drops a specific element of a specific basket.",
-        "operationId" : "deleteFromBasket",
-        "parameters" : [ {
-          "name" : "basketId",
-          "in" : "path",
-          "description" : "ID of the basket to remove element from.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "mediaResourceId",
-          "in" : "path",
-          "description" : "ID of the media resource that will be added.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/BasketElement"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/resource/{mediaResourceId}" : {
+    "/api/assets/{assetId}" : {
       "get" : {
         "tags" : [ "Resource" ],
-        "summary" : "Gets the media resource provided by the given ID.",
-        "operationId" : "getMediaResource",
+        "summary" : "Obtains metadata for the asset identified by the given ID.",
+        "operationId" : "getAssetMetadata",
         "parameters" : [ {
-          "name" : "mediaResourceId",
+          "name" : "assetId",
           "in" : "path",
-          "description" : "ID of the media resource to access.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "503" : {
-            "description" : "Service Unavailable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/resource/{mediaResourceId}/metadata" : {
-      "get" : {
-        "tags" : [ "Resource" ],
-        "summary" : "Gets the media resource provided by the given ID.",
-        "operationId" : "getMediaResourceMetadata",
-        "parameters" : [ {
-          "name" : "mediaResourceId",
-          "in" : "path",
-          "description" : "ID of the media resource to access metadata for.",
+          "description" : "ID of the asset to access metadata for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -705,36 +68,293 @@
         "security" : [ ]
       }
     },
-    "/api/resource/{mediaResourceId}/preview/{time}" : {
+    "/api/assets/{assetId}/resource" : {
       "get" : {
         "tags" : [ "Resource" ],
-        "summary" : "Generates and returns a preview of a media resource.",
-        "operationId" : "getPreviewForMediaResource",
+        "summary" : "Gets the media asset provided by the given ID.",
+        "operationId" : "getAssetResource",
         "parameters" : [ {
-          "name" : "mediaResourceId",
+          "name" : "assetId",
           "in" : "path",
-          "description" : "ID of the media resource to create preview for.",
+          "description" : "ID of the asset to access.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
-        }, {
-          "name" : "time",
-          "in" : "path",
-          "description" : "Time (absolut time) of the requested preview (video only).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
         } ],
         "responses" : {
           "200" : {
             "description" : "OK"
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/ingest/image" : {
+      "post" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Ingest one (or multiple) images into the XRECO NMR backend.",
+        "operationId" : "postIngestImage",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : { }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngestStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/ingest/model" : {
+      "post" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Ingest one (or multiple) models into the XRECO NMR backend.",
+        "operationId" : "postIngestModel",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : { }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngestStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/ingest/video" : {
+      "post" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Ingest one (or multiple) videos into the XRECO NMR backend.",
+        "operationId" : "postIngestVideo",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : { }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngestStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/ingest/{jobId}/abort" : {
+      "delete" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Tries to abort an ongoing ingest.",
+        "operationId" : "deleteIngestAbort",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngestStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/ingest/{jobId}/status" : {
+      "get" : {
+        "tags" : [ "Ingest" ],
+        "summary" : "Queries the ingest status for the provided job ID.",
+        "operationId" : "getIngestStatus",
+        "parameters" : [ {
+          "name" : "jobId",
+          "in" : "path",
+          "description" : "Job ID to query status of",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IngestStatus"
+                }
+              }
+            }
           },
           "404" : {
             "description" : "Not Found",
@@ -855,15 +475,15 @@
         "security" : [ ]
       }
     },
-    "/api/retrieval/lookup/{elementId}/{entity}" : {
+    "/api/retrieval/lookup/{field}/{retrievableId}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Get entity of given element",
-        "operationId" : "getValueOfElement",
+        "summary" : "Returns the descriptor for the given media resource.",
+        "operationId" : "getDescriptor",
         "parameters" : [ {
-          "name" : "elementId",
+          "name" : "retrievableId",
           "in" : "path",
-          "description" : "Id of element which will be returned",
+          "description" : "ID of retrievable for which to return the descriptor.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -871,9 +491,9 @@
             "type" : "string"
           }
         }, {
-          "name" : "entity",
+          "name" : "field",
           "in" : "path",
-          "description" : "Descriptor to retrieve data",
+          "description" : "Descriptor to retrieve data for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -931,15 +551,15 @@
         "security" : [ ]
       }
     },
-    "/api/retrieval/similarity/{entity}/{mediaResourceId}/{timestamp}/{pageSize}/{page}" : {
+    "/api/retrieval/similarity/{field}/{retrievableId}/{pageSize}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Issues a similarity query based on a provided media resource id.",
+        "summary" : "Issues a similarity query based on a provided retrievable ID (i.e., finds entries considered similar given the example).",
         "operationId" : "getSearchSimilar",
         "parameters" : [ {
-          "name" : "entity",
+          "name" : "field",
           "in" : "path",
-          "description" : "Name of the entity to query.",
+          "description" : "Name of the field to query (i.e., the feature to compare).",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -947,41 +567,19 @@
             "type" : "string"
           }
         }, {
-          "name" : "mediaResourceId",
+          "name" : "retrievableId",
           "in" : "path",
-          "description" : "ID of the media resource to find similar entries for.",
+          "description" : "ID of the retrievable to find similar entries for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
-          }
-        }, {
-          "name" : "timestamp",
-          "in" : "path",
-          "description" : "The exact timestamp of to find similar entries for.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
           }
         }, {
           "name" : "pageSize",
           "in" : "path",
-          "description" : "Page size of results",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "page",
-          "in" : "path",
-          "description" : "Request page of results",
+          "description" : "Number of results requested.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1036,15 +634,15 @@
         "security" : [ ]
       }
     },
-    "/api/retrieval/text/{entity}/{text}/{pageSize}/{page}" : {
+    "/api/retrieval/text/{field}/{text}/{pageSize}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
         "summary" : "Issues a fulltext query.",
         "operationId" : "getSearchFulltext",
         "parameters" : [ {
-          "name" : "entity",
+          "name" : "field",
           "in" : "path",
-          "description" : "Name of the entity to query.",
+          "description" : "Name of the field to query (i.e., the feature to compare).",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1064,18 +662,7 @@
         }, {
           "name" : "pageSize",
           "in" : "path",
-          "description" : "Page size of a single results page.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "page",
-          "in" : "path",
-          "description" : "Requested page of results. Zero-based index (first page = 0).",
+          "description" : "Number of results requested.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1130,15 +717,15 @@
         "security" : [ ]
       }
     },
-    "/api/retrieval/type/{elementId}" : {
+    "/api/retrieval/type/{retrievableId}" : {
       "get" : {
         "tags" : [ "Retrieval" ],
-        "summary" : "Get type of given element",
-        "operationId" : "getValueOfElement",
+        "summary" : "Get type of given retrievable.",
+        "operationId" : "getRetrievableType",
         "parameters" : [ {
-          "name" : "elementId",
+          "name" : "retrievableId",
           "in" : "path",
-          "description" : "Id of element which will be returned",
+          "description" : "ID of retrievable which to lookup the (media) type for.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -1199,36 +786,25 @@
   },
   "components" : {
     "schemas" : {
-      "BasketList" : {
+      "IngestStatus" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "baskets" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/BasketPreview"
-            }
-          }
-        },
-        "required" : [ "baskets" ]
-      },
-      "BasketPreview" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "basketId" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "name" : {
+          "jobId" : {
             "type" : "string"
           },
-          "size" : {
+          "assetIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "timestamp" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int64"
           }
         },
-        "required" : [ "basketId", "name", "size" ]
+        "required" : [ "jobId", "assetIds", "timestamp" ]
       },
       "MediaResource" : {
         "type" : "object",
@@ -1263,32 +839,23 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "page" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "pageSize" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "count" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
           "items" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ScoredMediaItem"
+              "$ref" : "#/components/schemas/ScoredResult"
             }
           }
         },
-        "required" : [ "page", "pageSize", "count", "items" ]
+        "required" : [ "items" ]
       },
-      "ScoredMediaItem" : {
+      "ScoredResult" : {
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
+          "sourceId" : {
+            "type" : "string"
+          },
+          "retrievableId" : {
             "type" : "string"
           },
           "score" : {
@@ -1302,13 +869,9 @@
           "end" : {
             "type" : "number",
             "format" : "float"
-          },
-          "rep" : {
-            "type" : "number",
-            "format" : "float"
           }
         },
-        "required" : [ "id", "score" ]
+        "required" : [ "sourceId", "retrievableId", "score" ]
       },
       "Text" : {
         "type" : "object",
@@ -1333,43 +896,6 @@
           }
         },
         "required" : [ "code", "description" ]
-      },
-      "SuccessStatus" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "description" ]
-      },
-      "Entity" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name" ]
-      },
-      "BasketElement" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "basketId" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "mediaResourceId" : {
-            "type" : "string"
-          },
-          "entity" : {
-            "$ref" : "#/components/schemas/Entity"
-          }
-        },
-        "required" : [ "basketId", "mediaResourceId", "entity" ]
       }
     },
     "securitySchemes" : {

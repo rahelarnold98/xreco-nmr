@@ -2,18 +2,12 @@ buildscript {
     repositories {
         mavenCentral()
     }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$version_kotlin"
-    }
 }
 
 plugins {
     id 'java-library'
     id 'org.openapi.generator' version '5.2.0'
-    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
     id 'com.github.node-gradle.node' version '3.5.1'
-    id "org.jetbrains.kotlin.plugin.serialization" version "$version_kotlin"
     id "de.undercouch.download" version "5.4.0"
 }
 
@@ -50,18 +44,10 @@ tasks.register('generateOAS', Download) {
 allprojects {
     /* Artefact properties. */
     group = 'eu.xreco.nmr'
-    version = '1.0-SNAPSHOT'
-
-    repositories {
-        mavenCentral()
-    }
+    version = '0.0.1-SNAPSHOT'
 }
 
 /* Configure subprojects. */
 subprojects {
-    apply plugin: 'java'
-
-    dependencies {
-
-    }
+    apply plugin: 'idea'
 }

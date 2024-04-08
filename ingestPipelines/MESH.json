@@ -1,0 +1,34 @@
+{
+  "schema": "xreco",
+  "context": {
+    "contentFactory": "InMemoryContentFactory",
+    "resolverFactory": "MinioResolver"
+  },
+  "enumerator": {
+    "name": "ListEnumerator",
+    "parameters": {
+      "depth": "5",
+      "mediaTypes": "MESH"
+    },
+    "next": {
+      "name": "MeshDecoder",
+      "nextSegmenter": {
+        "name": "PassThroughSegmenter",
+        "aggregators": [
+          {
+            "name": "FirstContentAggregator",
+            "nextExtractor": {
+              "fieldName": "certh",
+              "nextExtractor": {
+                "fieldName": "metadata",
+                "nextExtractor": {
+                  "fieldName": "fulltext"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
