@@ -46,6 +46,11 @@ class FulltextExtractor(
                 }
             }
         }
-        return listOf(StringDescriptor(id = UUID.randomUUID(), retrievableId = retrievable.id, value = Value.String(text.toString()), transient = !persisting))
+
+        return if (text.trim().isBlank()) {
+            emptyList()
+        } else {
+            listOf(StringDescriptor(id = UUID.randomUUID(), retrievableId = retrievable.id, value = Value.String(text.trim().toString()), transient = !persisting))
+        }
     }
 }
