@@ -7,4 +7,3 @@ pluginManagement {
 rootProject.name = 'xreco-nmr'
 
 include 'nmr-backend'
-include 'nmr-frontend'

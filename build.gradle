@@ -23,7 +23,7 @@ openApiGenerate {
 
     generatorName = 'typescript-angular'
     inputSpec = oasFile
-    outputDir = file("${project.projectDir}/nmr-frontend/openapi").toString()
+    outputDir = file("${project.projectDir}/openapi").toString()
     configOptions = [
         npmName: '@nmr-openapi/api',
         ngVersion: '13.2.3',
